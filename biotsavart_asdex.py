@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 # Dominik Haberz 11916636
-=======
 # Clara Rinner 01137166
->>>>>>> signature_clara
 #%%
 # program biotsavart
 #
