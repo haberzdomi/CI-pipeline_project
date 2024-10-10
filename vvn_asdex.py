@@ -89,8 +89,6 @@ def GBmodc(RI,fI,ZI, coil_data):
     BZX=0.0
     BZY=0.0
     # 25.12.2008 end
-    K0=0
-    K1=1
     for N in range(NPR):  #NPR=1
         BXB=0.0
         BYB=0.0
@@ -107,15 +105,18 @@ def GBmodc(RI,fI,ZI, coil_data):
         BZXB=0.0
         BZYB=0.0
         # 25.12.2008 end
-        XMXC=X-XO[K0]  #difference of grid point and first coil point | r-r'[0]
-        YMYC=Y-YO[K0]
-        ZMZC=Z-ZO[K0]
+        XMXC=X-XO[0]  #difference of grid point and first coil point | r-r'[0]
+        YMYC=Y-YO[0]
+        ZMZC=Z-ZO[0]
+        coil0=[XO[0],YO[0],ZO[0]]
+        R1_vector=np.subtract(grid_point,coil0)
 
-        R1=np.sqrt(XMXC*XMXC+YMYC*YMYC+ZMZC*ZMZC)  #distance between grid point and first coil point | |r-r'[0]|
+        R1=np.linalg.norm(R1_vector)  #distance between grid point and first coil point | |r-r'[0]|
         R1X=XMXC/R1
         R1Y=YMYC/R1
         R1Z=ZMZC/R1
-        for K in range(K1,nnodc):   # loops through the remaining coil points
+        e_R1=np.dot(R1_vector, 1/R1)
+        for K in range(1,nnodc):   # loops through the remaining coil points
             AX=XO[K]-XO[K-1]  #difference between the current coil point and the previous one | l
             AY=YO[K]-YO[K-1]
             AZ=ZO[K]-ZO[K-1]
@@ -209,7 +210,7 @@ def GBmodc(RI,fI,ZI, coil_data):
 
 
 #     def datw7xm(nparx):
-def datw7xm(ncoil):
+def load_coil_data(ncoil):
     """Return the values in co_asd.dd and cur_asd.dd
     
     ncoil - lnumber of coils    

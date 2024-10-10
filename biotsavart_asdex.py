@@ -3,11 +3,11 @@
 #%%
 # program biotsavart
 #
-from vvn_asdex import magfie, datw7xm
+from vvn_asdex import magfie, load_coil_data
 #%%
 import math
 ncoil=16
-coil_data = datw7xm(ncoil)
+coil_data = load_coil_data(ncoil)
 x = [0.0, 0.0, 0.0]
 #% global facbc
 #
