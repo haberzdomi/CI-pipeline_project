@@ -3,9 +3,11 @@
 #%%
 # program biotsavart
 #
-from vvn_asdex import magfie
+from vvn_asdex import magfie, datw7xm
 #%%
 import math
+ncoil=16
+coil_data = datw7xm(ncoil)
 x = [0.0, 0.0, 0.0]
 #% global facbc
 #
@@ -34,12 +36,10 @@ print(pmin,pmax,file=f1)
 print(zmin,zmax,file=f1)
 for i in range(nr):
     print(i+1,'/',nr)
-    x[0]=rmin+hrad*i
     for j in range(np):
-        x[1]=pmin+hphi*j
         for k in range(nz):
-            x[2]=zmin+hzet*k
-            bmod,sqrtg,bder,hcovar,hctrvr,hcurl=magfie(x)
+            x = [rmin+hrad*i,pmin+hphi*j,zmin+hzet*k]
+            bmod,sqrtg,bder,hcovar,hctrvr,hcurl=magfie(x, coil_data)
             print(hcovar[0]*bmod,hcovar[1]*bmod/x[0],hcovar[2]*bmod,file=f1)
 f1.close()
 #
