@@ -6,6 +6,26 @@ facbc=1.0
 #% facb=None
 
 def gbcoil(RI,fI,ZI):
+    """
+    multiply data from GBmodc with facb
+    
+    Args:
+        RI, fI, ZI - cylindrical coordinates of grid point where the magnetic field is to be determined
+
+    Returns:
+        BRI
+        BfI
+        BZI
+        BRRI
+        BRfI
+        BRZI            magnetic field details
+        BfRI
+        BffI
+        BfZI
+        BZRI
+        BZfI
+        BZZI
+    """
 
     global facbc, nnodc
     global facb, ier
@@ -45,6 +65,26 @@ def gbcoil(RI,fI,ZI):
 
 
 def GBmodc(RI,fI,ZI):
+    """
+    evaluate Biot-Savart integral
+
+    Args:
+        RI, fI, ZI - cylindrical coordinates of grid point where the magnetic field is to be determined
+
+    Returns:
+        BRI
+        BfI
+        BZI
+        BRRI
+        BRfI
+        BRZI            magnetic field details
+        BfRI
+        BffI
+        BfZI
+        BZRI
+        BZfI
+        BZZI
+    """
     # w7x version
 
     # 25.07.2012    npar,ncoil=10850,27
@@ -227,6 +267,16 @@ def GBmodc(RI,fI,ZI):
 
 #     def datw7xm(nparx):
 def datw7xm(neli):
+    """
+    return data from co_asd.dd and save data from cur_asd.dd in global variable curco
+
+    Args:
+        neli - length of returned lists
+    Returns:
+        XO, YO, ZO - coordinate lists of coil points
+        cur - 0 if last point in a coil, otherwise 1
+        nco - coil number
+    """
 
     XO = np.empty(neli)
     YO = np.empty(neli)
@@ -277,6 +327,20 @@ def datw7xm(neli):
 #
 #
 def magfie(x):
+    """
+    Determine properties of the magnetic field at the coordinates x
+
+    Args:
+        x - cylindrical coordinates of grid point where the magnetic field is to be determined
+
+    Returns:
+        bmod - magnetic field module in units of the magnetic code
+        sqrtg - square root of determinant of the metric tensor
+        bder - derivatives of the logarithm of the magnetic field module over coordinates
+        hcovar - covariant components of the unit vector of the magnetic field direction
+        hctrvr - contravariant components of this vector
+        hcurl - contravariant component of the curl of this vector
+    """
     #
     # Computes magnetic field module in units of the magnetic code  - bmod,
     # square root of determinant of the metric tensor           - sqrtg,
@@ -301,7 +365,7 @@ def magfie(x):
     #
     #  Called routines:  GBhs,GBRZd
     #
-    rbig=max(x[0],1.0e-12)
+    rbig=max(x[0],1.0e-12)  #determines mimimum possible r
     #
     ######## computation of gb in cylindrical co-ordinates ########
     ri=rbig
