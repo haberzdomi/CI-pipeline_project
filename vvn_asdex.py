@@ -284,7 +284,7 @@ def magfie(x, coil_data):
     #
     #  Called routines:  GBhs,GBRZd
     #
-    rbig=max(x[0],1.0e-12)
+    rbig=max(x[0],1.0e-12)  #determines mimimum possible r
     #
     ######## computation of gb in cylindrical co-ordinates ########
     ri=rbig
