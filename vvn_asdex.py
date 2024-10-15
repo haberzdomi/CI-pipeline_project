@@ -6,7 +6,27 @@ facbc=1.0
 #% facb=None
 
 def gbcoil(RI,fI,ZI, coil_data):
-    """Multiply values obtained by GBmodc with facbc"""
+    """
+    multiply data from GBmodc with facb
+    
+    Args:
+        RI, fI, ZI - cylindrical coordinates of grid point where the magnetic field is to be determined
+        coil_data - coordinates of the coil points
+
+    Returns:
+        BRI
+        BfI
+        BZI
+        BRRI
+        BRfI
+        BRZI            magnetic field details
+        BfRI
+        BffI
+        BfZI
+        BZRI
+        BZfI
+        BZZI
+    """
     global facbc
     global ier
 
@@ -41,16 +61,27 @@ def gbcoil(RI,fI,ZI, coil_data):
 
 
 def GBmodc(RI,fI,ZI, coil_data):
-    """Evaluate the biotsavart integral
-    
-    RI, fI, ZI - grid point cylindrical coordinates
-    coil_data - coordinates of coil points
     """
-    # w7x version
+    evaluate Biot-Savart integral
 
-    #     GBX1
+    Args:
+        RI, fI, ZI - cylindrical coordinates of grid point where the magnetic field is to be determined
+        coil_data - coordinates of the coil points
 
-    # 19.05.2011
+    Returns:
+        BRI
+        BfI
+        BZI
+        BRRI
+        BRfI
+        BRZI            magnetic field details
+        BfRI
+        BffI
+        BfZI
+        BZRI
+        BZfI
+        BZZI
+    """
     global PROP, bfrt, NPR
 
     [XO,YO,ZO,cur,nco,nnodc,curco]=coil_data
@@ -211,12 +242,17 @@ def GBmodc(RI,fI,ZI, coil_data):
 
 #     def datw7xm(nparx):
 def load_coil_data(ncoil):
-    """Return the values in co_asd.dd and cur_asd.dd
+    """
+    Return the data in co_asd.dd and cur_asd.dd
     
-    ncoil - lnumber of coils    
-    XO, YO, ZO - coodinates of points on coil
-    nnodc - number of coil points
-    curco - values in cur_asd.dd
+    Args: 
+        ncoil - number of coils  
+    Returns:
+        XO, YO, ZO - coodinate lists of coil points
+        cur - 0 if last point in a coil, otherwise 1
+        nco - coil number
+        nnodc - number of coil points
+        curco - values in cur_asd.dd
     """
 
     # 19.05.2011
@@ -259,6 +295,18 @@ def load_coil_data(ncoil):
 #
 def magfie(x, coil_data):
     """
+    Determine properties of the magnetic field at the coordinates x
+
+    Args:
+        x - cylindrical coordinates of grid point where the magnetic field is to be determined
+
+    Returns:
+        bmod - magnetic field module in units of the magnetic code
+        sqrtg - square root of determinant of the metric tensor
+        bder - derivatives of the logarithm of the magnetic field module over coordinates
+        hcovar - covariant components of the unit vector of the magnetic field direction
+        hctrvr - contravariant components of this vector
+        hcurl - contravariant component of the curl of this vector
     """
     #
     # Computes magnetic field module in units of the magnetic code  - bmod,
