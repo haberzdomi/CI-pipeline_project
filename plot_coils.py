@@ -2,6 +2,11 @@
 from numpy import empty, loadtxt
 import matplotlib.pyplot as plt
 
+"""
+This script makes a 3D plot of the coils. The geometry of 
+the coils is read from co_asd.dd.
+"""
+
 data = loadtxt('co_asd.dd', skiprows=1, usecols=(0, 1, 2))
 ncoil = 16
 nseg = data.shape[0] // ncoil
