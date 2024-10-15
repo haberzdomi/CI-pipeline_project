@@ -15,6 +15,18 @@ Z_min = 0.0
 Z_max = 0.0
 
 def field_c(R, Z, n):
+    """Evaluate the magnetic field at the given discretized space points of a coil.
+
+    Args:
+        R (array[float]): Discretized R-coordinate for evaluation of the magnetic field
+        Z (array[float]): Discretized Z-coordinate for evaluation of the magnetic field
+        n (int): coil number (1 <= n <= total number of coils)
+
+    Returns:
+        BnR (float): Absolute R-component of the magnetic field
+        Bnphi (float): Absolute phi-component of the magnetic field
+        BnZ (float): Absolute Z-component of the magnetic field
+    """
     global icall_c, AnR_Re, AnR_Im, AnZ_Re, AnZ_Im
     if icall_c == 0:
         icall_c = 1
@@ -24,6 +36,13 @@ def field_c(R, Z, n):
     return BnR, Bnphi, BnZ
 
 def read_field4():
+    """Get the magnetic field components for each point in the discretized 3D space from the output field.dat file.
+
+    Returns:
+        BR (3D array[float, float, float]): R-component of the magnetic field for the corresponding space point.
+        Bphi (3D [float, float, float]): phi-component of the magnetic field for the corresponding space point.
+        BZ (3D array[float, float, float]): Z-component of the magnetic field for the corresponding space point.
+    """
     global nR, nphi, nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max
     from numpy import empty
     f = open('field.dat', 'r')
@@ -42,6 +61,19 @@ def read_field4():
     return BR, Bphi, BZ
 
 def vector_potentials(n_max, BnR, Bnphi, BnZ):
+    """ Calculate fourier coefficients and use them to get the vector potential from the B-field components using fourier transform.
+
+    Args:
+        n_max (int): largest dimension of nR, nphi or nZ
+        BnR (3D array[float, float, float]): R-component of the magnetic field for the corresponding space point.
+        Bnphi (3D [float, float, float]): phi-component of the magnetic field for the corresponding space point.
+        BnZ (3D array[float, float, float]): Z-component of the magnetic field for the corresponding space point.
+    Returns:
+        AnR_Re ():
+        AnR_Im ():
+        AnZ_Re ():
+        AnZ_Im ():
+    """
     global nR, nphi, nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max
     from numpy import empty, exp, linspace, pi, sum
     from scipy.interpolate import RectBivariateSpline
@@ -54,11 +86,15 @@ def vector_potentials(n_max, BnR, Bnphi, BnZ):
     AnR = empty((nR, nZ), dtype=complex)
     AnZ = empty((nR, nZ), dtype=complex)
     for n in range(1, n_max + 1):
+        #Fourier coefficients
         fourier = exp(-1j * n * linspace(0, 2 * pi, nphi)) / (nphi - 1);
+        #Fourier transform
         for kR in range(nR):
             for kZ in range(nZ):
+                #
                 AnR[kR, kZ] = 1j / n * R_eqd[kR] * sum(BnZ[kR, :-1, kZ] * fourier[:-1])
                 AnZ[kR, kZ] = -1j / n * R_eqd[kR] * sum(BnR[kR, :-1, kZ] * fourier[:-1])
+        #Interpolation
         AnR_Re[n-1] = RectBivariateSpline(R_eqd, Z_eqd, AnR.real, kx=5, ky=5)
         AnR_Im[n-1] = RectBivariateSpline(R_eqd, Z_eqd, AnR.imag, kx=5, ky=5)
         AnZ_Re[n-1] = RectBivariateSpline(R_eqd, Z_eqd, AnZ.real, kx=5, ky=5)
@@ -66,6 +102,20 @@ def vector_potentials(n_max, BnR, Bnphi, BnZ):
     return AnR_Re, AnR_Im, AnZ_Re, AnZ_Im
 
 def field_divfree(R, Z, n, AnR_Re, AnR_Im, AnZ_Re, AnZ_Im):
+    """_summary_
+
+    Args:
+        R (_type_): _description_
+        Z (_type_): _description_
+        n (_type_): _description_
+        AnR_Re (_type_): _description_
+        AnR_Im (_type_): _description_
+        AnZ_Re (_type_): _description_
+        AnZ_Im (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     global nR, nphi, nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max
     from numpy import atleast_1d, newaxis, squeeze
     R = atleast_1d(R)
