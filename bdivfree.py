@@ -15,17 +15,17 @@ Z_min = 0.0
 Z_max = 0.0
 
 def field_c(R, Z, n):
-    """Evaluate the magnetic field at the given discretized space points of a coil.
+    """Evaluate the magnetic field at the given discretized space points of coil n.
 
     Args:
-        R (array[float]): Discretized R-coordinate for evaluation of the magnetic field
-        Z (array[float]): Discretized Z-coordinate for evaluation of the magnetic field
+        R (1D array[float]): Discretized R-coordinate for evaluation of the magnetic field
+        Z (1D array[float]): Discretized Z-coordinate for evaluation of the magnetic field
         n (int): coil number (1 <= n <= total number of coils)
 
     Returns:
-        BnR (float): Absolute R-component of the magnetic field
-        Bnphi (float): Absolute phi-component of the magnetic field
-        BnZ (float): Absolute Z-component of the magnetic field
+        BnR ((len(R),len(Z)) array[complex float]): R-component of the magnetic field for each point in k-space.
+        Bnphi ((len(R),len(Z)) array[complex float]): phi-component of the magnetic field for each point in k-space.
+        BnZ ((len(R),len(Z)) array[complex float]): Z-component of the magnetic field for each point in k-space.
     """
     global icall_c, AnR_Re, AnR_Im, AnZ_Re, AnZ_Im
     if icall_c == 0:
@@ -61,7 +61,8 @@ def read_field4():
     return BR, Bphi, BZ
 
 def vector_potentials(n_max, BnR, Bnphi, BnZ):
-    """ Calculate fourier coefficients and use them to get the vector potential from the B-field components using fourier transform.
+    """ Calculate radial and axial components of the vector potential in k-space using fourier series and B=rot(A). 
+    Perform a bivariate spline approximation to evaluate them on the descretized space.
 
     Args:
         n_max (int): largest dimension of nR, nphi or nZ
@@ -69,10 +70,10 @@ def vector_potentials(n_max, BnR, Bnphi, BnZ):
         Bnphi (3D [float, float, float]): phi-component of the magnetic field for the corresponding space point.
         BnZ (3D array[float, float, float]): Z-component of the magnetic field for the corresponding space point.
     Returns:
-        AnR_Re ():
-        AnR_Im ():
-        AnZ_Re ():
-        AnZ_Im ():
+        AnR_Re (List[RectBivariateSpline]): Real part of the radial component of the vector potential.
+        AnR_Im (List[RectBivariateSpline]): Imaginary part of the radial component of the vector potential.
+        AnZ_Re (List[RectBivariateSpline]): Real part of the axial component of the vector potential.
+        AnZ_Im (List[RectBivariateSpline]): Imaginary part of the axial component of the vector potential.
     """
     global nR, nphi, nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max
     from numpy import empty, exp, linspace, pi, sum
@@ -86,15 +87,18 @@ def vector_potentials(n_max, BnR, Bnphi, BnZ):
     AnR = empty((nR, nZ), dtype=complex)
     AnZ = empty((nR, nZ), dtype=complex)
     for n in range(1, n_max + 1):
-        #Fourier coefficients
+        # Fourier coefficients
         fourier = exp(-1j * n * linspace(0, 2 * pi, nphi)) / (nphi - 1);
-        #Fourier transform
+        # Calculate radial and axial components of the vector potential
+        # in k-space using fourier series and B=rot(A).
         for kR in range(nR):
             for kZ in range(nZ):
-                #
                 AnR[kR, kZ] = 1j / n * R_eqd[kR] * sum(BnZ[kR, :-1, kZ] * fourier[:-1])
                 AnZ[kR, kZ] = -1j / n * R_eqd[kR] * sum(BnR[kR, :-1, kZ] * fourier[:-1])
-        #Interpolation
+        # Interpolation via bivariate spline approximation. 
+        # First two args are the points for which the data is evaluated.
+        # The third argument is the data. 
+        # The last two arguments are the degree of the bivariate spline.
         AnR_Re[n-1] = RectBivariateSpline(R_eqd, Z_eqd, AnR.real, kx=5, ky=5)
         AnR_Im[n-1] = RectBivariateSpline(R_eqd, Z_eqd, AnR.imag, kx=5, ky=5)
         AnZ_Re[n-1] = RectBivariateSpline(R_eqd, Z_eqd, AnZ.real, kx=5, ky=5)
@@ -102,29 +106,35 @@ def vector_potentials(n_max, BnR, Bnphi, BnZ):
     return AnR_Re, AnR_Im, AnZ_Re, AnZ_Im
 
 def field_divfree(R, Z, n, AnR_Re, AnR_Im, AnZ_Re, AnZ_Im):
-    """_summary_
+    """Calculate the magnetic field from the vector potential components and make B divergence-free by calculating the azimuthal component appropriately.
 
     Args:
-        R (_type_): _description_
-        Z (_type_): _description_
-        n (_type_): _description_
-        AnR_Re (_type_): _description_
-        AnR_Im (_type_): _description_
-        AnZ_Re (_type_): _description_
-        AnZ_Im (_type_): _description_
+        R (1D array[float]): Discretized R-coordinate for evaluation of the magnetic field
+        Z (1D array[float]): Discretized Z-coordinate for evaluation of the magnetic field
+        n (int): coil number (1 <= n <= total number of coils)
+        AnR_Re (List[RectBivariateSpline]): Real part of the radial component of the vector potential.
+        AnR_Im (List[RectBivariateSpline]): Imaginary part of the radial component of the vector potential.
+        AnZ_Re (List[RectBivariateSpline]): Real part of the axial component of the vector potential.
+        AnZ_Im (List[RectBivariateSpline]): Imaginary part of the axial component of the vector potential.
 
     Returns:
-        _type_: _description_
+        BnR ((len(R),len(Z)) array[complex float]): R-component of the magnetic field for each point in k-space.
+        Bnphi ((len(R),len(Z)) array[complex float]): phi-component of the magnetic field for each point in k-space.
+        BnZ ((len(R),len(Z)) array[complex float]): Z-component of the magnetic field for each point in k-space.
     """
     global nR, nphi, nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max
     from numpy import atleast_1d, newaxis, squeeze
-    R = atleast_1d(R)
+    # Make sure R and Z are arrays
+    R = atleast_1d(R) 
     Z = atleast_1d(Z)
+    # Get the R- and Z-components of the vector potential and their derivatives
     AnR = AnR_Re[n-1](R, Z) + 1j * AnR_Im[n-1](R, Z)
     AnZ = AnZ_Re[n-1](R, Z) + 1j * AnZ_Im[n-1](R, Z)
     dAnR_dZ = AnR_Re[n-1](R, Z, dy=1) + 1j * AnR_Im[n-1](R, Z, dy=1)
     dAnZ_dR = AnZ_Re[n-1](R, Z, dx=1) + 1j * AnZ_Im[n-1](R, Z, dx=1)
+    # Calculate the azimuthal component such that div(B) = 0
     BnR = 1j * n * AnZ / R[:, newaxis]
     Bnphi = dAnR_dZ - dAnZ_dR
     BnZ = -1j * n * AnR / R[:, newaxis]
+    # Remove 1D axis before returning
     return squeeze(BnR), squeeze(Bnphi), squeeze(BnZ)
