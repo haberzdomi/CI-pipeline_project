@@ -139,8 +139,8 @@ def GBmodc(RI,fI,ZI, coil_data):
         XMXC=X-XO[0]  #difference of grid point and first coil point | r-r'[0]
         YMYC=Y-YO[0]
         ZMZC=Z-ZO[0]
-        coil0=[XO[0],YO[0],ZO[0]]
-        R1_vector=np.subtract(grid_point,coil0)
+        coil_point_current=[XO[0],YO[0],ZO[0]]
+        R1_vector=np.subtract(grid_point,coil_point_current)
 
         R1=np.linalg.norm(R1_vector)  #distance between grid point and first coil point | |r-r'[0]|
         R1X=XMXC/R1
@@ -151,15 +151,21 @@ def GBmodc(RI,fI,ZI, coil_data):
             AX=XO[K]-XO[K-1]  #difference between the current coil point and the previous one | l
             AY=YO[K]-YO[K-1]
             AZ=ZO[K]-ZO[K-1]
+            coil_point_previous=coil_point_current
+            coil_point_current=[XO[K],YO[K],ZO[K]]
+
+            A=np.subtract(coil_point_current, coil_point_previous)
             XMXC=X-XO[K]        #difference between grid point and current coil point | r-r'[k]
             YMYC=Y-YO[K]
             ZMZC=Z-ZO[K]
+            R2_vector=np.subtract(grid_point,coil_point_current)
 
             ZPRA=AX*XMXC+AY*YMYC+AZ*ZMZC    #scalar product of l and r-r'[k]
-            R2=np.sqrt(XMXC*XMXC+YMYC*YMYC+ZMZC*ZMZC)   #distance between grid point and current coil point | |r-r'[k]|
+            R2=np.linalg.norm(R2_vector)  #distance between grid point and current coil point | |r-r'[k]|
             R2X=XMXC/R2
             R2Y=YMYC/R2
             R2Z=ZMZC/R2
+            e_R2=np.dot(R2_vector, 1/R2)
 
             if cur[K-1]!=0.0:   # if not first point of a coil
 
@@ -170,13 +176,15 @@ def GBmodc(RI,fI,ZI, coil_data):
                 FLX=FLR1*R1X+FLR2*R2X-OBCP*AX
                 FLY=FLR1*R1Y+FLR2*R2Y-OBCP*AY
                 FLZ=FLR1*R1Z+FLR2*R2Z-OBCP*AZ
+                FL_=np.add(np.dot(FLR1, e_R1), np.dot(FLR2, e_R2), np.dot(-OBCP,A))
                 BXB1=YMYC*AZ-ZMZC*AY    #r-r'[k] x l
                 BYB1=ZMZC*AX-XMXC*AZ
                 BZB1=XMXC*AY-YMYC*AX
+                B_B1=np.cross(R2_vector,A)
 
                 # 19.05.2011    FAZRDA=FAZRDA*cur[K-1]
                 ncoi=nco[K]
-                FAZRDA=FAZRDA*cur[K-1]*curco[ncoi-1]
+                FAZRDA=FAZRDA*cur[K-1]*curco[ncoi-1] #cur[K-1]=1    curco[ncoi-1] - current in coil
                 # 19.05.2011 end
 
                 BXB=BXB1*FAZRDA+BXB
