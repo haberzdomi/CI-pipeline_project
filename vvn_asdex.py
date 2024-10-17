@@ -121,7 +121,7 @@ def GBmodc(RI,fI,ZI):
     rd=RI
     cosf=np.cos(fd)
     sinf=np.sin(fd)
-    Y=rd*sinf
+    Y=rd*sinf   #cartesian coordinates of grid point
     X=rd*cosf
     Z=ZI
     BX=0.0
@@ -141,7 +141,7 @@ def GBmodc(RI,fI,ZI):
     # 25.12.2008 end
     K0=0
     K1=1
-    for N in range(NPR):
+    for N in range(NPR):    #NPR=1
         BXB=0.0
         BYB=0.0
 
@@ -157,25 +157,25 @@ def GBmodc(RI,fI,ZI):
         BZXB=0.0
         BZYB=0.0
         # 25.12.2008 end
-        XMXC=X-XO[K0]
+        XMXC=X-XO[K0]  #difference of grid point and first coil point | r-r'[0]
         YMYC=Y-YO[K0]
         ZMZC=Z-ZO[K0]
 
-        R1=np.sqrt(XMXC*XMXC+YMYC*YMYC+ZMZC*ZMZC)
+        R1=np.sqrt(XMXC*XMXC+YMYC*YMYC+ZMZC*ZMZC)  #distance between grid point and first coil point | |r-r'[0]|
         OR1=1.0/R1
         R1X=XMXC*OR1
         R1Y=YMYC*OR1
         R1Z=ZMZC*OR1
-        for K in range(K1,K2):
-            AX=XO[K]-XO[K-1]
-            XMXC=X-XO[K]
+        for K in range(K1,K2):   # loops through the remaining coil points
+            AX=XO[K]-XO[K-1]  #difference between the current coil point and the previous one | l
+            XMXC=X-XO[K]        #difference between grid point and current coil point | r-r'[k]
             AY=YO[K]-YO[K-1]
             YMYC=Y-YO[K]
 
             AZ=ZO[K]-ZO[K-1]
             ZMZC=Z-ZO[K]
-            ZPRA=AX*XMXC+AY*YMYC+AZ*ZMZC
-            R2=np.sqrt(XMXC*XMXC+YMYC*YMYC+ZMZC*ZMZC)
+            ZPRA=AX*XMXC+AY*YMYC+AZ*ZMZC    #scalar product of l and r-r'[k]
+            R2=np.sqrt(XMXC*XMXC+YMYC*YMYC+ZMZC*ZMZC)  #distance between grid point and current coil point | |r-r'[k]|
             OR2=1.0/R2
             R2X=XMXC*OR2
             R2Y=YMYC*OR2
@@ -184,7 +184,7 @@ def GBmodc(RI,fI,ZI):
             R1PR2=R1+R2
             OR1PR2=1.0/R1PR2
 
-            if cur[K-1]!=0.0:
+            if cur[K-1]!=0.0:   # if not first point of a coil
 
                 OBCP=1.0/(R2*R1PR2+ZPRA)
                 FAZRDA=-R1PR2*OBCP*OR1*OR2
@@ -194,13 +194,13 @@ def GBmodc(RI,fI,ZI):
                 FLX=FLR1*R1X+FLR2*R2X+FLZA*AX
                 FLY=FLR1*R1Y+FLR2*R2Y+FLZA*AY
                 FLZ=FLR1*R1Z+FLR2*R2Z+FLZA*AZ
-                BXB1=YMYC*AZ-ZMZC*AY
+                BXB1=YMYC*AZ-ZMZC*AY    #r-r'[k] x l
                 BYB1=ZMZC*AX-XMXC*AZ
                 BZB1=XMXC*AY-YMYC*AX
 
                 # 19.05.2011    FAZRDA=FAZRDA*cur[K-1]
                 ncoi=nco[K]
-                FAZRDA=FAZRDA*cur[K-1]*curco[ncoi-1]
+                FAZRDA=FAZRDA*cur[K-1]*curco[ncoi-1] #cur[K-1]=1    curco[ncoi-1] - current in coil
                 # 19.05.2011 end
 
                 BXB=BXB1*FAZRDA+BXB
