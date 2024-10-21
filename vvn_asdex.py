@@ -413,7 +413,7 @@ def magfie(x):
     hf=bf/bmod
     hz=bz/bmod
     
-    # derivatives of the logarythm of the magnetic field module over coordinates
+    # derivatives of the logarithm of the magnetic field module over coordinates
     bder=np.empty(3)
     bder[0]=(brr*hr+bfr*hf+bzr*hz)/bmod
     bder[1]=(brf*hr+bff*hf+bzf*hz)/bmod
