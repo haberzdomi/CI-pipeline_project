@@ -15,7 +15,7 @@ There is one colorplot for each of the n coils.
 
 # Read biotsavart input parameters
 with open('biotsavart.inp', 'r') as f:
-    # number of points for each dimension for discretization
+    # number of grid points for each dimension for discretization
     nR, nphi, nZ = [int(data) for data in f.readline().split()]
     # Boundaries of R- and Z-dimension
     R_min, R_max = [float(data) for data in f.readline().split()]

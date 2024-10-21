@@ -18,14 +18,14 @@ def field_c(R, Z, n):
     """Evaluate the magnetic field at the given discretized space points of coil n.
 
     Args:
-        R (1D array[float]): Discretized R-coordinate for evaluation of the magnetic field
-        Z (1D array[float]): Discretized Z-coordinate for evaluation of the magnetic field
+        R (array[float], shape=(2*nR-1,)): R-coordinates of the 2*nR-1 grid points for evaluation of the magnetic field
+        Z (array[float], shape=(2*nZ-1,)): Z-coordinates of the 2*nR-1 grid points for evaluation of the magnetic field
         n (int): coil number (1 <= n <= total number of coils)
 
     Returns:
-        BnR ((len(R),len(Z)) array[complex float]): R-component of the magnetic field for each point in k-space.
-        Bnphi ((len(R),len(Z)) array[complex float]): phi-component of the magnetic field for each point in k-space.
-        BnZ ((len(R),len(Z)) array[complex float]): Z-component of the magnetic field for each point in k-space.
+        BnR (array[complex float], shape=(len(R),len(Z))): R-component of the magnetic field for each point in k-space.
+        Bnphi (array[complex float], shape=(len(R),len(Z))): phi-component of the magnetic field for each point in k-space.
+        BnZ (array[complex float], shape=(len(R),len(Z))): Z-component of the magnetic field for each point in k-space.
     """
     global icall_c, AnR_Re, AnR_Im, AnZ_Re, AnZ_Im
     if icall_c == 0:
@@ -39,9 +39,9 @@ def read_field4():
     """Get the magnetic field components for each point in the discretized 3D space from the output field.dat file.
 
     Returns:
-        BR (3D array[float, float, float]): R-component of the magnetic field for the corresponding space point.
-        Bphi (3D [float, float, float]): phi-component of the magnetic field for the corresponding space point.
-        BZ (3D array[float, float, float]): Z-component of the magnetic field for the corresponding space point.
+        BR (array[float], shape=(nR, nphi, nZ)): R-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
+        Bphi (array[float], shape=(nR, nphi, nZ)): phi-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
+        BZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
     """
     global nR, nphi, nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max
     from numpy import empty
@@ -66,14 +66,14 @@ def vector_potentials(n_max, BnR, Bnphi, BnZ):
 
     Args:
         n_max (int): largest dimension of nR, nphi or nZ
-        BnR (3D array[float, float, float]): R-component of the magnetic field for the corresponding space point.
-        Bnphi (3D [float, float, float]): phi-component of the magnetic field for the corresponding space point.
-        BnZ (3D array[float, float, float]): Z-component of the magnetic field for the corresponding space point.
+        BnR (array[float], shape=(nR, nphi, nZ)): R-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
+        Bnphi (array[float], shape=(nR, nphi, nZ)): phi-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
+        BnZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
     Returns:
-        AnR_Re (List[RectBivariateSpline]): Real part of the radial component of the vector potential.
-        AnR_Im (List[RectBivariateSpline]): Imaginary part of the radial component of the vector potential.
-        AnZ_Re (List[RectBivariateSpline]): Real part of the axial component of the vector potential.
-        AnZ_Im (List[RectBivariateSpline]): Imaginary part of the axial component of the vector potential.
+        AnR_Re (List[RectBivariateSpline], size=n_max): Real part of the radial component of the vector potential.
+        AnR_Im (List[RectBivariateSpline], size=n_max): Imaginary part of the radial component of the vector potential.
+        AnZ_Re (List[RectBivariateSpline], size=n_max): Real part of the axial component of the vector potential.
+        AnZ_Im (List[RectBivariateSpline], size=n_max): Imaginary part of the axial component of the vector potential.
     """
     global nR, nphi, nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max
     from numpy import empty, exp, linspace, pi, sum
@@ -106,21 +106,22 @@ def vector_potentials(n_max, BnR, Bnphi, BnZ):
     return AnR_Re, AnR_Im, AnZ_Re, AnZ_Im
 
 def field_divfree(R, Z, n, AnR_Re, AnR_Im, AnZ_Re, AnZ_Im):
-    """Calculate the magnetic field from the vector potential components and make B divergence-free by calculating the azimuthal component appropriately.
+    """Calculate the magnetic field from the vector potential components and 
+    make B divergence-free by calculating the azimuthal component appropriately.
 
     Args:
-        R (1D array[float]): Discretized R-coordinate for evaluation of the magnetic field
-        Z (1D array[float]): Discretized Z-coordinate for evaluation of the magnetic field
-        n (int): coil number (1 <= n <= total number of coils)
-        AnR_Re (List[RectBivariateSpline]): Real part of the radial component of the vector potential.
-        AnR_Im (List[RectBivariateSpline]): Imaginary part of the radial component of the vector potential.
-        AnZ_Re (List[RectBivariateSpline]): Real part of the axial component of the vector potential.
-        AnZ_Im (List[RectBivariateSpline]): Imaginary part of the axial component of the vector potential.
+        R (array[float], shape=(2*nR-1,)): R-coordinates of the 2*nR-1 grid points for evaluation of the magnetic field
+        Z (array[float], shape=(2*nZ-1,)): Z-coordinates of the 2*nR-1 grid points for evaluation of the magnetic field
+        n (int): coil index (1 <= n <= total number of coils)
+        AnR_Re (List[RectBivariateSpline], size=n_max): Real part of the radial component of the vector potential.
+        AnR_Im (List[RectBivariateSpline], size=n_max): Imaginary part of the radial component of the vector potential.
+        AnZ_Re (List[RectBivariateSpline], size=n_max): Real part of the axial component of the vector potential.
+        AnZ_Im (List[RectBivariateSpline], size=n_max): Imaginary part of the axial component of the vector potential.
 
     Returns:
-        BnR ((len(R),len(Z)) array[complex float]): R-component of the magnetic field for each point in k-space.
-        Bnphi ((len(R),len(Z)) array[complex float]): phi-component of the magnetic field for each point in k-space.
-        BnZ ((len(R),len(Z)) array[complex float]): Z-component of the magnetic field for each point in k-space.
+        BnR (array[complex float], shape=(len(R),len(Z))): R-component of the magnetic field for each point in k-space.
+        Bnphi (array[complex float], shape=(len(R),len(Z))): phi-component of the magnetic field for each point in k-space.
+        BnZ (array[complex float], shape=(len(R),len(Z))): Z-component of the magnetic field for each point in k-space.
     """
     global nR, nphi, nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max
     from numpy import atleast_1d, newaxis, squeeze
