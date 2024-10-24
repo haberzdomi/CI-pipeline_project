@@ -5,13 +5,16 @@ from matplotlib.colors import Normalize
 from bdivfree import field_c
 
 """
-Plots the decadic logarithm of the square of the norm 
-of the total magnetic field in each point in discretized space. 
-There is one colorplot for each of the n coils.
+Read the output of the biotsavart_asdex calculation ('field,dat') and its input 
+parameters ('biotsavart.inp'). Fourier transformation is used to calculate the 
+first n modes of R- and Z-component of the magnetic field. The phi component is 
+calculated such that the magnetic field gets divergency free. Precisely the decadic 
+logarithm of the square of the norm of the total magnetic field is caluculated for 
+each of the modes on a grid which has double the resolution of the 3D-grid defined 
+for biotsavart_asdex.py. For each modem one colorplot is created.
 """
 
-#%% Get magnetic field components from the biotsavart calculation output (field.dat) 
-# and take the absolute value squared value for each point in discretized space.
+#%%
 
 # Read biotsavart input parameters
 with open('biotsavart.inp', 'r') as f:
@@ -25,11 +28,12 @@ with open('biotsavart.inp', 'r') as f:
 R = linspace(R_min, R_max, 2 * nR - 1)
 Z = linspace(Z_min, Z_max, 2 * nZ - 1)
 
+# vert*horz = number of modes plotted
 vert = 2 # number of rows for subplots
 horz = 4 # number of columns for subplots
 log_Bn2 = empty((vert * horz, 2 * nR - 1, 2 * nZ - 1)) 
 
-# Get logaritmic value of the squared norm of the magnetic field for each coil, i.e. for each subplot k
+# Get logaritmic value of the squared norm of the magnetic field for each mode, i.e. for each subplot k
 for k in range(vert * horz):
     BnR, Bnphi, BnZ = field_c(R, Z, k + 1) # Get the magnetic field components
     # Add up the squared norm of the B-field components and take the logarithm of it
@@ -38,9 +42,9 @@ for k in range(vert * horz):
                               BnZ * conj(BnZ)).real)
 # color plot normalization 
 norm = Normalize(vmin=amin(log_Bn2), vmax=amax(log_Bn2))
-#%% Plot 
+#%% 
 
-# Create a figure with subplots for each coil
+# Create a figure with subplots for each mode
 fig = plt.figure(layout='constrained')
 axs = fig.subplots(vert, horz).ravel()
 for k in range(vert * horz):
