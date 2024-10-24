@@ -24,3 +24,10 @@ def testIntegrationBooleParametrized(f, a, b, n, prediction, tol):
 #     for i in [0,1]:
 #         result = integrationMethods.integrationBoole(f[i], a, b, n[i])
 #         assert np.abs(result - prediction[i]) < tol[i]
+
+
+
+## When we added the polynomials of second and third order to the test function x: x the rectangular and the trapezoidal
+## integration were no longer accurate. The new threshold were chosen according to the error functions of the
+## respective integration methods. The simpson and boole methods were exact for the third grade polynomial, 
+## since they only generate errors from the forth grade and higher.
