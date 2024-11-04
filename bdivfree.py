@@ -70,10 +70,10 @@ def vector_potentials(n_max, BnR, Bnphi, BnZ):
         Bnphi (array[float], shape=(nR, nphi, nZ)): phi-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
         BnZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
     Returns:
-        AnR_Re (List[RectBivariateSpline], size=n_max): Real part of the radial component of the vector potential.
-        AnR_Im (List[RectBivariateSpline], size=n_max): Imaginary part of the radial component of the vector potential.
-        AnZ_Re (List[RectBivariateSpline], size=n_max): Real part of the axial component of the vector potential.
-        AnZ_Im (List[RectBivariateSpline], size=n_max): Imaginary part of the axial component of the vector potential.
+        AnR_Re (List[RectBivariateSpline], size=n_max): Function that describes the real part of the radial component of the vector potential.
+        AnR_Im (List[RectBivariateSpline], size=n_max): Function that describes the imaginary part of the radial component of the vector potential.
+        AnZ_Re (List[RectBivariateSpline], size=n_max): Function that describes the real part of the axial component of the vector potential.
+        AnZ_Im (List[RectBivariateSpline], size=n_max): Function that describes the imaginary part of the axial component of the vector potential.
     """
     global nR, nphi, nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max
     from numpy import empty, exp, linspace, pi, sum
@@ -106,8 +106,8 @@ def vector_potentials(n_max, BnR, Bnphi, BnZ):
     return AnR_Re, AnR_Im, AnZ_Re, AnZ_Im
 
 def field_divfree(R, Z, n, AnR_Re, AnR_Im, AnZ_Re, AnZ_Im):
-    """Calculate the magnetic field from the vector potential components and 
-    make B divergence-free by calculating the azimuthal component appropriately.
+    """Calculate the magnetic field from the vector potential components with the assumption, that the phi-component 
+    of the vector potential is zero, in order to make B divergence-free
 
     Args:
         R (array[float], shape=(2*nR-1,)): R-coordinates of the 2*nR-1 grid points for evaluation of the magnetic field
