@@ -65,4 +65,3 @@ def test_fourier(n_max=8):
     assert (np.all(errors_real < 1e-8) and np.all(errors_imag < 1e-8)), assert_msg_both
     assert np.all(errors_real < 1e-8), assert_msg_real
     assert np.all(errors_imag < 1e-8), assert_msg_imag
-test_fourier()
