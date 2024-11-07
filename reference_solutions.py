@@ -2,6 +2,13 @@ from vvn_asdex import magfie
 import math
 from biotsavart_asdex import biotsavart_asdex
 import os
+import numpy as np
+
+
+def BZ_formula(z, R, I):
+    return I*R**2*2*math.pi/(R**2+z**2)**(3/2)
+
+
 def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg):
     files_to_move = ["biotsavart.inp", "co_asd.dd", "cur_asd.dd"]
     #move original input files to temporary folder
@@ -26,9 +33,23 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg):
     print(I_c, file=file3)
     file3.close()
 
-
+    #run biotsavart_asdex
     biotsavart_asdex()
 
+    #process output data
+    data = open("field.dat", 'r')
+    for i in range(4):
+        data.readline()
+    BZ_data = np.empty((nR, nphi, nZ))
+    for kR in range(nR):
+        for kphi in range(nphi):
+            for kZ in range(nZ):
+                BZ_data[kR, kphi, kZ] = float(data.readline().split()[2])
+    
+    BZ = [BZ_data[0,0,i] for i in range(nZ)]
+    Z = np.linspace(-R_max, R_max, nZ)
+    BZ_analytic = [BZ_formula(z, R_0, I_c) for z in Z]
+    
 
     #remove test input files
     for filename in files_to_move:
@@ -38,6 +59,5 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg):
     for filename in files_to_move:
         os.rename("C:\\Users\\franz\\OneDrive\\Uni\\Software Engineering in Physics\\worstpractice\\temporary\\"+filename, "C:\\Users\\franz\\OneDrive\\Uni\\Software Engineering in Physics\\worstpractice\\"+filename)
     os.rmdir("temporary")
-    return
+    return Z, BZ, BZ_analytic
 
-circular_current(4,2,2,32,4,7,64)
