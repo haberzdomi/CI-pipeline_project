@@ -6,13 +6,35 @@ import numpy as np
 import bdivfree
 
 def BZ_formula(z, R, I):
+    """Analytical formula for the magnetic field of a circular current loop along its axis
+
+    Args:
+        z (float): position along the axis
+        R (float): Radius of the loop
+        I (float): current flowing through the loop
+    
+    Returns:
+        Result of the formula
+    """
     return I*R**2*2*math.pi/(R**2+z**2)**(3/2)
 
 
 
-
-
 def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg):
+    """Use biotsavart.py to calculate the magnetic field of a circular current loop
+
+    Args:
+        R_max (float): the extent of the computational grid, i.e., R ∈ [0,Rmax], Z ∈ [-Rmax,Rmax]
+        nR (int), nphi (int), nZ (int): the number of grid points
+        R_0 (float): Radius of the loop
+        I_c (float): current flowing through the loop
+        nseg (int): the number of segments in the discretisation of the loop
+    
+    Returns:
+        Z (array[float], shape=(nZ,)): the array of equidistant Z coordinates of the computational grid
+        BZ (array[float], shape=(nZ,)): the values of BZ(Z), as returned by biotsavart_asdex
+        BZ_analytical (array[float], shape=(nZ,)): the values of BZ(Z), as returned by the analytical formula
+    """
     files_to_move = ["biotsavart.inp", "co_asd.dd", "cur_asd.dd"]
     #move original input files to temporary folder
     os.mkdir("C:\\Users\\franz\\OneDrive\\Uni\\Software Engineering in Physics\\worstpractice\\temporary")
@@ -62,7 +84,7 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg):
     for filename in files_to_move:
         os.rename("C:\\Users\\franz\\OneDrive\\Uni\\Software Engineering in Physics\\worstpractice\\temporary\\"+filename, "C:\\Users\\franz\\OneDrive\\Uni\\Software Engineering in Physics\\worstpractice\\"+filename)
     os.rmdir("temporary")
-    return
+    return Z, BZ, BZ_analytic
 
 
 

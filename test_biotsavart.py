@@ -11,6 +11,17 @@ import numpy as np
 )
 
 def test_biotsavart(R_max, nR, nphi, nZ, R_0, I_c, nseg, tol):
+    """test the circular_current function to assert, whether the result using biotsavart_asdex is sufficiently
+    close to the analytical solution with the example of a circular current loop
+
+    Args:
+        R_max (float): the extent of the computational grid, i.e., R ∈ [0,Rmax], Z ∈ [-Rmax,Rmax]
+        nR (int), nphi (int), nZ (int): the number of grid points
+        R_0 (float): Radius of the loop
+        I_c (float): current flowing through the loop
+        nseg (int): the number of segments in the discretisation of the loop
+        tol (float): acceptable difference between the analytical result and the output of biotsavart_asdex
+    """
     from reference_solutions import circular_current
     from reference_solutions import BZ_formula
 
