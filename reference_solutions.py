@@ -1,4 +1,3 @@
-from vvn_asdex import magfie
 import math
 from biotsavart_asdex import biotsavart_asdex
 import os
@@ -58,6 +57,10 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg):
     file3 = open("cur_asd.dd", "w")
     print(I_c, file=file3)
     file3.close()
+
+    #
+    import vvn_asdex
+    vvn_asdex.PROP = False
 
     #run biotsavart_asdex
     biotsavart_asdex()
