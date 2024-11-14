@@ -4,7 +4,7 @@ import numpy as np
 
 @pytest.mark.parametrize(
         "R_max, nR, nphi, nZ, R_0, I_c, nseg, tol",
-        [[4,2,2,32,4,3,64, 0.05],]
+        [[4,2,2,32,4,3,64, 0.04],]
         ##tolerance was chosen by comparing the formula for a circular loop and the formula for a polygon-shaped loop.
         ##the maximum value of the analytical solution was multiplied with the factor n*tan(pi/n)/pi
         ##the approximate difference was chosen as the tolerance

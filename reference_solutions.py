@@ -37,9 +37,10 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg):
     """
     files_to_move = ["biotsavart.inp", "co_asd.dd", "cur_asd.dd"]
     #move original input files to temporary folder
-    os.mkdir("C:\\Users\\franz\\OneDrive\\Uni\\Software Engineering in Physics\\worstpractice\\temporary")
+
+    os.mkdir("temporary") if not os.path.exists("temporary") else None
     for filename in files_to_move:
-        os.rename("C:\\Users\\franz\\OneDrive\\Uni\\Software Engineering in Physics\\worstpractice\\"+filename, "C:\\Users\\franz\\OneDrive\\Uni\\Software Engineering in Physics\\worstpractice\\temporary\\"+filename)
+        os.rename(filename, "temporary\\"+filename)
     
     #Create input files for test
     file1 = open("biotsavart.inp", "w")
@@ -82,7 +83,7 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg):
 
     #return original input files to their former place
     for filename in files_to_move:
-        os.rename("C:\\Users\\franz\\OneDrive\\Uni\\Software Engineering in Physics\\worstpractice\\temporary\\"+filename, "C:\\Users\\franz\\OneDrive\\Uni\\Software Engineering in Physics\\worstpractice\\"+filename)
+        os.rename("temporary\\"+filename, filename)
     os.rmdir("temporary")
     return Z, BZ, BZ_analytic
 
