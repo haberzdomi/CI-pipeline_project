@@ -34,7 +34,7 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg):
         BZ (array[float], shape=(nZ,)): the values of BZ(Z), as returned by biotsavart_asdex
         BZ_analytical (array[float], shape=(nZ,)): the values of BZ(Z), as returned by the analytical formula
     """
-    files_to_move = ["biotsavart.inp", "co_asd.dd", "cur_asd.dd"]
+    files_to_move = ["biotsavart.inp", "co_asd.dd", "cur_asd.dd", "field.dat"]
     #move original input files to temporary folder
     os.mkdir("C:\\Users\\franz\\OneDrive\\Uni\\Software Engineering in Physics\\worstpractice\\temporary")
     for filename in files_to_move:
@@ -57,9 +57,6 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg):
     print(I_c, file=file3)
     file3.close()
 
-    #
-    import vvn_asdex
-    vvn_asdex.PROP = False
 
     #run biotsavart_asdex
     biotsavart_asdex()
@@ -73,6 +70,7 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg):
         for kphi in range(nphi):
             for kZ in range(nZ):
                 BZ_data[kR, kphi, kZ] = float(data.readline().split()[2])
+    data.close()
     
     BZ = [BZ_data[0,0,i] for i in range(nZ)]
     Z = np.linspace(-R_max, R_max, nZ)

@@ -8,44 +8,167 @@ file 'biotsavart.inp' using the Biot-Savart law. The output is
 written to the file 'field.dat'.
 """
 #
-from vvn_asdex import calculate_magnetic_field, load_coil_data
-#%%
-import math
-def biotsavart_asdex():
-    coil_data = load_coil_data()
-    x = [0.0, 0.0, 0.0]
-    #
-    # Get the input data, defining the discrete space for the magnetic field calculation.
-    f1=open('biotsavart.inp','r')
+import numpy as np
+from grid import make_grid
+
+class coils:
+    def __init__(self,X,Y,Z,has_current,coil_number,n_nodes):
+        self.X=X
+        self.Y=Y
+        self.Z=Z
+        self.has_current=has_current
+        self.coil_number=coil_number
+        self.n_nodes=n_nodes
+
+def calc_biotsavart(grid_coordinates, coil_data, currents):
+    """
+    Calculate the magnetic field components by 
+    evaluating the Biot-Savart integral.
+
+    Args:
+        grid_coordinates (array[float], shape=(3)): cylindrical coordinates of the grid point
+        coil_data: coordinates of the coil points
+
+    Returns:
+        BRI (float): radial component fo the magnetic field
+        BfI (float): toroidal component of the magnetic field
+        BZI (float): axial component of the magnetic field
+    """
+
+    RI=grid_coordinates[0]
+    fI=grid_coordinates[1]
+    ZI=grid_coordinates[2]
+    cosf=np.cos(fI)
+    sinf=np.sin(fI)
+    Y_grid=RI*sinf  #cartesian coordinates of grid point
+    X_grid=RI*cosf
+    Z_grid=ZI
+    grid_point=[X_grid,Y_grid,Z_grid]
+
+    B=[0,0,0]
+
+    coil_point_current=[coil_data.X[0],coil_data.Y[0],coil_data.Z[0]]
+    R1_vector=np.subtract(grid_point,coil_point_current)  #difference of grid point and first coil point | r-r'[0]
+
+    R1=np.linalg.norm(R1_vector)  #distance between grid point and first coil point | |r-r'[0]|
+
+    for K in range(1,coil_data.n_nodes):   # loops through the remaining coil points
+
+        coil_point_previous=coil_point_current
+        coil_point_current=[coil_data.X[K],coil_data.Y[K],coil_data.Z[K]]
+
+        A=np.subtract(coil_point_current, coil_point_previous)  #difference between the current coil point and the previous one | l
+
+        R2_vector=np.subtract(grid_point,coil_point_current)#difference between grid point and current coil point | r-r'[k]
+
+        scalar_product = np.dot(A, R2_vector)   #scalar product of l and r-r'[k]
+        R2=np.linalg.norm(R2_vector)  #distance between grid point and current coil point | |r-r'[k]|
+
+
+        if coil_data.has_current[K-1]!=0.0:   # if not first point of a coil
+
+            OBCP=1.0/(R2*(R1+R2)+scalar_product)
+            FAZRDA=-(R1+R2)*OBCP/R1/R2*currents[coil_data.coil_number[K]-1] #curco[nco[K]-1] - current in coil
+            B_B1=np.cross(R2_vector,A)    #r-r'[k] x l
+
+            B=np.add(np.dot(B_B1, FAZRDA), B)
+
+        R1=R2
+
+    B_R=B[0]*cosf+B[1]*sinf
+    B_phi=B[1]*cosf-B[0]*sinf
+    B_Z = B[2]
+
+    return B_R, B_phi, B_Z
+
+
+def read_coils(coil_file):
+    """
+    Return the data in co_asd.dd and cur_asd.dd
+    
+    Args: 
+        None
+    Returns:
+        XO, YO, ZO - coodinate lists of coil points
+        cur - 0 if last point in a coil, otherwise 1
+        nco - coil number
+        nnodc - number of coil points
+    """
+
+    file = open(coil_file, 'r')
+    n_nodes = int(file.readline())
+
+        
+    data = np.loadtxt(file)
+    X = data[:,0]
+    Y = data[:,1]
+    Z = data[:,2]
+    has_current = data[:,3]
+    coil_number = [int(d) for d in data[:,4]]
+
+
+    # Raise error if the current factor for the last node of the last coil is not 0.
+    if has_current[n_nodes-1]!=0.0:
+        raise Exception(str(has_current[n_nodes-1])+'=cbc~=0, stop')
+
+    file.close()
+    return coils(X,Y,Z,has_current,coil_number,n_nodes)
+
+
+
+def read_currents(current_file):
+    file = open(current_file, 'r')
+    currents = [float(data) for data in file.read().split()]
+    file.close()
+    return currents
+
+
+
+def read_grid(grid_file, L1i):
+    f1=open(grid_file,'r')
     nr,np,nz=[int(data) for data in f1.readline().split()] # number of grid points in r, phi, z direction
     rmin, rmax=[float(data) for data in f1.readline().split()] # min and max values for r
     zmin, zmax=[float(data) for data in f1.readline().split()] # min and max values for z
     f1.close()
+    return make_grid(nr,np,nz, rmin, rmax, zmin, zmax,L1i)
+
+
+def write_field_to_file(field_file, grid, B, L1i):
+    file=open(field_file,'w')
+    # Write the input parameters for the magnetic field calculation to the output file.
+    file.write(f"{grid.n_R} {grid.n_phi} {grid.n_Z} {L1i}\n")
+    file.write(f"{grid.R_min} {grid.R_max}\n")
+    file.write(f"{grid.phi_min} {grid.phi_max}\n")
+    file.write(f"{grid.Z_min} {grid.Z_max}\n")
+    # Loop over the grid points and calculate the magnetic field components.
+    for b in B:
+        file.write(f"{b[0]} {b[1]} {b[2]}\n")
+    file.close()
+
+def get_field_on_grid(grid, coils, currents):
+    B=[]
+    for r in grid.R:
+        for p in grid.phi:
+            for z in grid.Z:
+                x = [r,p,z] # coordinates for current grid point
+                B_R, B_phi, B_Z=calc_biotsavart(x, coils, currents)
+                B.append([B_R, B_phi, B_Z])
+    return B
+#%%
+def biotsavart_asdex():
+    coils = read_coils('co_asd.dd')
+    currents = read_currents('cur_asd.dd')
     #
+    # Get the input data, defining the discrete space for the magnetic field calculation.    #
     L1i=1
     #
-    pmin=0.0
-    pmax=2*math.pi/L1i
-    #
-    hrad = (rmax - rmin)/(nr-1) # step size in r direction
-    hphi = (pmax - pmin)/(np-1) # step size in phi direction
-    hzet = (zmax - zmin)/(nz-1) # step size in z direction
+    grid = read_grid('biotsavart.inp', L1i)
     #
     #%%
-    f1=open('field.dat','w')
-    # Write the input parameters for the magnetic field calculation to the output file.
-    print(nr,np,nz,L1i,file=f1)
-    print(rmin,rmax,file=f1)
-    print(pmin,pmax,file=f1)
-    print(zmin,zmax,file=f1)
-    # Loop over the grid points and calculate the magnetic field components.
-    for i in range(nr):
-        print(i+1,'/',nr) # print progress
-        # TODO: Dynamic creation of matrices is more time consuming (especailly for higher dimensions) than preallocating them
-        for j in range(np):
-            for k in range(nz):
-                x = [rmin+hrad*i,pmin+hphi*j,zmin+hzet*k] # coordinates for current grid point
-                b=calculate_magnetic_field(x, coil_data)
-                print(b[0],b[1],b[2],file=f1)
-    f1.close()
-    #
+    B = get_field_on_grid(grid,coils,currents)
+
+    write_field_to_file('field.dat', grid, B, L1i)
+
+    
+if __name__=="__main__":
+    biotsavart_asdex()
