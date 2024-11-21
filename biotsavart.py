@@ -170,4 +170,4 @@ def make_field_file_from_coils(grid_file='biotsavart.inp', coil_file='co_asd.dd'
 
     
 if __name__=="__main__":
-    make_field_file_from_coils(grid_file='biotsavart.inp',coil_file='co_asd.dd',current_file='cur_asd.dd',field_file='field.dat',L1i=1)
+    make_field_file_from_coils()
