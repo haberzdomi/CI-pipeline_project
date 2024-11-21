@@ -1,5 +1,5 @@
 import math
-from biotsavart_asdex import biotsavart_asdex
+from biotsavart import make_field_file_from_coils
 import os
 import numpy as np
 import bdivfree
@@ -34,36 +34,29 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg):
         BZ (array[float], shape=(nZ,)): the values of BZ(Z), as returned by biotsavart_asdex
         BZ_analytical (array[float], shape=(nZ,)): the values of BZ(Z), as returned by the analytical formula
     """
-    files_to_move = ["biotsavart.inp", "co_asd.dd", "cur_asd.dd", "field.dat"]
-    #move original input files to temporary folder
-
-    os.mkdir("temporary") if not os.path.exists("temporary") else None
-    for filename in files_to_move:
-        os.rename(filename, "temporary\\"+filename)
-    
     #Create input files for test
-    file1 = open("biotsavart.inp", "w")
+    file1 = open("grid.inp", "w")
     print(nR, nphi, nZ, file=file1)
     print(0, R_max, file=file1)
     print(-R_max, R_max, file=file1)
     file1.close()
-    file2 = open("co_asd.dd", "w")
+    file2 = open("coil.dd", "w")
     print(nseg+1, file=file2)
     dphi = 2*math.pi/nseg
     for i in range(nseg):
         print(R_0*math.cos(i*dphi), R_0*math.sin(i*dphi), 0, 1, 1, file=file2)
     print(R_0, 0, 0, 0, 1, file=file2)  #connect last point to first point
     file2.close()
-    file3 = open("cur_asd.dd", "w")
+    file3 = open("current.dd", "w")
     print(I_c, file=file3)
     file3.close()
 
 
     #run biotsavart_asdex
-    biotsavart_asdex()
+    make_field_file_from_coils('grid.inp', 'coil.dd', 'current.dd', 'output.dat', 1)
 
     #process output data
-    data = open("field.dat", 'r')
+    data = open("output.dat", 'r')
     for i in range(4):
         data.readline()
     BZ_data = np.empty((nR, nphi, nZ))
@@ -79,13 +72,9 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg):
     
 
     #remove test input files
-    for filename in files_to_move:
+    for filename in ['grid.inp', 'coil.dd', 'current.dd', 'output.dat']:
         os.remove(filename)
 
-    #return original input files to their former place
-    for filename in files_to_move:
-        os.rename("temporary\\"+filename, filename)
-    os.rmdir("temporary")
     return Z, BZ, BZ_analytic
 
 

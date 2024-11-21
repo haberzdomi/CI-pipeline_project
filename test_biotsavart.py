@@ -23,7 +23,6 @@ def test_biotsavart(R_max, nR, nphi, nZ, R_0, I_c, nseg, tol):
         tol (float): acceptable difference between the analytical result and the output of biotsavart_asdex
     """
     from reference_solutions import circular_current
-    from reference_solutions import BZ_formula
 
 
     Z, BZ, BZ_analytic = circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg)

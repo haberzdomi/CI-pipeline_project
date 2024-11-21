@@ -9,6 +9,7 @@ written to the file 'field.dat'.
 """
 #
 import numpy as np
+import math
 from grid import make_grid
 
 class coils:
@@ -130,7 +131,9 @@ def read_grid(grid_file, L1i):
     rmin, rmax=[float(data) for data in f1.readline().split()] # min and max values for r
     zmin, zmax=[float(data) for data in f1.readline().split()] # min and max values for z
     f1.close()
-    return make_grid(nr,np,nz, rmin, rmax, zmin, zmax,L1i)
+    phi_min=0
+    phi_max=2*math.pi/L1i
+    return make_grid(nr,np,nz, rmin, rmax, phi_min, phi_max, zmin, zmax)
 
 
 def write_field_to_file(field_file, grid, B, L1i):
@@ -154,21 +157,17 @@ def get_field_on_grid(grid, coils, currents):
                 B_R, B_phi, B_Z=calc_biotsavart(x, coils, currents)
                 B.append([B_R, B_phi, B_Z])
     return B
-#%%
-def biotsavart_asdex():
-    coils = read_coils('co_asd.dd')
-    currents = read_currents('cur_asd.dd')
-    #
-    # Get the input data, defining the discrete space for the magnetic field calculation.    #
-    L1i=1
-    #
-    grid = read_grid('biotsavart.inp', L1i)
-    #
-    #%%
-    B = get_field_on_grid(grid,coils,currents)
 
-    write_field_to_file('field.dat', grid, B, L1i)
+def make_field_file_from_coils(grid_file='biotsavart.inp', coil_file='co_asd.dd', current_file='cur_asd.dd', field_file='field.dat', L1i=1):
+    coils = read_coils(coil_file)
+    currents = read_currents(current_file)
+    #
+    grid = read_grid(grid_file, L1i)
+    #
+    B = get_field_on_grid(grid,coils,currents)
+    #
+    write_field_to_file(field_file, grid, B, L1i)
 
     
 if __name__=="__main__":
-    biotsavart_asdex()
+    make_field_file_from_coils(grid_file='biotsavart.inp',coil_file='co_asd.dd',current_file='cur_asd.dd',field_file='field.dat',L1i=1)
