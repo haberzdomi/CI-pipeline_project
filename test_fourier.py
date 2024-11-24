@@ -1,8 +1,7 @@
-import pytest
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import rcParams
-
+from reference_solutions import fourier_analysis
 
 def test_fourier(n_max=8):
     """Test the handwritten discrete fourier transform of the magnetic field 
@@ -20,8 +19,7 @@ def test_fourier(n_max=8):
         n_max (int, optional): highest number of magnetic field mode up to which the test is done.
                                Defaults to 8.
     """
-    from reference_solutions import fourier_analysis
-    
+
     # Calculate the magnetic field components for the first 'n_max' modes
     # for the radial grid R via handwritten fourier transform and via numpy.fft.ftt  
     R, BnR, BnR_fft = fourier_analysis(n_max)

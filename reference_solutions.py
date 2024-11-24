@@ -1,5 +1,6 @@
 import math
 from biotsavart_asdex import biotsavart_asdex
+from plot_modes import read_field
 import os
 import numpy as np
 import bdivfree
@@ -104,37 +105,24 @@ def fourier_analysis(n_max):
         BnR_fft (array[complex float], shape=(n_max,nR)): R-component of the n'th mode of the magnetic field calculated
                                                       by numpy.fft.fft using fast fourier transform.
     """
-    
-    # Get input parameters for the radial and axial grid.
-    with open('field.dat', 'r') as f:
-        # number of grid points for each dimension for discretization
-        nR, nphi, nZ, L1i = [int(data) for data in f.readline().split()]
-        # Boundaries of R- and Z-dimension
-        R_min, R_max = [float(data) for data in f.readline().split()]
-        phi_min, phi_max = [float(data) for data in f.readline().split()]
-        Z_min, Z_max = [float(data) for data in f.readline().split()]
-    
-    # Create grids
-    R = np.linspace(R_min, R_max, nR)
-    Z = np.linspace(Z_min, Z_max, nZ)
-    
-    # Fix Z to the middle of the axial grid
-    Z_fixed = Z[nZ//2]
+    # Get grid and magnetic field components from the calculation output field.dat
+    g, BR, Bphi, BZ = read_field('field.dat')
     
     # Calculate the first 'n_max' modes of the magnetic field on the radial grid ...
     
     # ... via the handwritten fourier transform in field_c
-    BnR=np.empty((n_max, nR), dtype=complex)
+    A = bdivfree.vector_potentials(64, g, BR, Bphi, BZ)
+    BnR=np.empty((n_max, g.nR), dtype=complex)
     for k in range(n_max):
         # n=k+1 because range starts from 0 but n=1 is the first mode.
-        BnR[k], Bnphi, BnZ = bdivfree.field_c(R, Z_fixed, k + 1)    
+        # Fix Z to the middle of the axial grid
+        BnR[k], Bnphi, BnZ = bdivfree.field_divfree(g.R, g.Z[g.nZ//2], k + 1, A)    
     
     # ... via the method numpy.fft.fft. 
-    BR, Bphi, BZ = bdivfree.read_field4() # Get magnetic field components from field.dat
-    BnR_fft=np.empty((n_max, nR))
+    BnR_fft=np.empty((n_max, g.nR))
     # The fourier transform implemented in field_c is "forward".
     # phi goes from 0 to 2*pi therefore the end is excluded.
     # numpy stores the components such that the first mode is on index 1 and the higher order modes follow on the next indices.
-    BnR_fft = np.fft.fft(BR[:,:-1,nZ//2],norm="forward")[:,1:n_max+1]
+    BnR_fft = np.fft.fft(BR[:,:-1, g.nZ//2],norm="forward")[:,1:n_max+1]
     BnR_fft = BnR_fft.T # Change to the same shape as BnR.
-    return R, BnR, BnR_fft
+    return g.R, BnR, BnR_fft

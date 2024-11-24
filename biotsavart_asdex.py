@@ -9,7 +9,7 @@ written to the file 'field.dat'.
 """
 #
 import numpy as np
-from grid import make_grid
+from grid import grid
 
 class coils:
     def __init__(self,X,Y,Z,has_current,coil_number,n_nodes):
@@ -126,17 +126,19 @@ def read_currents(current_file):
 
 def read_grid(grid_file, L1i):
     f1=open(grid_file,'r')
-    nr,np,nz=[int(data) for data in f1.readline().split()] # number of grid points in r, phi, z direction
-    rmin, rmax=[float(data) for data in f1.readline().split()] # min and max values for r
-    zmin, zmax=[float(data) for data in f1.readline().split()] # min and max values for z
+    nR,nphi,nZ=[int(data) for data in f1.readline().split()] # number of grid points in r, phi, z direction
+    R_min, R_max=[float(data) for data in f1.readline().split()] # min and max values for r
+    phi_min = 0
+    phi_max = 2*np.pi/L1i
+    Z_min, Z_max=[float(data) for data in f1.readline().split()] # min and max values for z
     f1.close()
-    return make_grid(nr,np,nz, rmin, rmax, zmin, zmax,L1i)
+    return grid(nR,nphi,nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max)
 
 
 def write_field_to_file(field_file, grid, B, L1i):
     file=open(field_file,'w')
     # Write the input parameters for the magnetic field calculation to the output file.
-    file.write(f"{grid.n_R} {grid.n_phi} {grid.n_Z} {L1i}\n")
+    file.write(f"{grid.nR} {grid.nphi} {grid.nZ} {L1i}\n")
     file.write(f"{grid.R_min} {grid.R_max}\n")
     file.write(f"{grid.phi_min} {grid.phi_max}\n")
     file.write(f"{grid.Z_min} {grid.Z_max}\n")
