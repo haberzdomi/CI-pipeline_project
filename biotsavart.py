@@ -53,11 +53,11 @@ def calc_biotsavart(grid_coordinates, coils, currents):
         coil_point_previous=coil_point
         coil_point=[coils.X[K],coils.Y[K],coils.Z[K]]
 
-        A=np.subtract(coil_point, coil_point_previous)  #difference between the current coil point and the previous one | l
+        L=np.subtract(coil_point, coil_point_previous)  #difference between the current coil point and the previous one | l
 
         R2_vector=np.subtract(grid_point,coil_point)#difference between grid point and current coil point | r-r'[k]
 
-        scalar_product = np.dot(A, R2_vector)   #scalar product of l and r-r'[k]
+        scalar_product = np.dot(L, R2_vector)   #scalar product of l and r-r'[k]
         R2=np.linalg.norm(R2_vector)  #distance between grid point and current coil point | |r-r'[k]|
 
 
@@ -65,7 +65,7 @@ def calc_biotsavart(grid_coordinates, coils, currents):
 
             OBCP=1.0/(R2*(R1+R2)+scalar_product)
             FAZRDA=-(R1+R2)*OBCP/R1/R2*currents[coils.coil_number[K]-1] #curco[nco[K]-1] - current in coil
-            B_B1=np.cross(R2_vector,A)    #r-r'[k] x l
+            B_B1=np.cross(R2_vector,L)    #r-r'[k] x l
 
             B=np.add(np.dot(B_B1, FAZRDA), B)
 
