@@ -2,15 +2,10 @@
 # Clara Rinner 01137166
 #%%
 # program biotsavart
-"""
-Calculate the magnetic field components on a grid defined in the 
-file 'biotsavart.inp' using the Biot-Savart law. The output is 
-written to the file 'field.dat'.
-"""
-#
 import numpy as np
 import math
-from grid import make_grid
+from grid import grid
+import argparse
 
 class coils:
     def __init__(self,X,Y,Z,has_current,coil_number,n_nodes):
@@ -21,7 +16,7 @@ class coils:
         self.coil_number=coil_number
         self.n_nodes=n_nodes
 
-def calc_biotsavart(grid_coordinates, coil_data, currents):
+def calc_biotsavart(grid_coordinates, coils, currents):
     """
     Calculate the magnetic field components by 
     evaluating the Biot-Savart integral.
@@ -48,28 +43,28 @@ def calc_biotsavart(grid_coordinates, coil_data, currents):
 
     B=[0,0,0]
 
-    coil_point_current=[coil_data.X[0],coil_data.Y[0],coil_data.Z[0]]
-    R1_vector=np.subtract(grid_point,coil_point_current)  #difference of grid point and first coil point | r-r'[0]
+    coil_point=[coils.X[0],coils.Y[0],coils.Z[0]]
+    R1_vector=np.subtract(grid_point,coil_point)  #difference of grid point and first coil point | r-r'[0]
 
     R1=np.linalg.norm(R1_vector)  #distance between grid point and first coil point | |r-r'[0]|
 
-    for K in range(1,coil_data.n_nodes):   # loops through the remaining coil points
+    for K in range(1,coils.n_nodes):   # loops through the remaining coil points
 
-        coil_point_previous=coil_point_current
-        coil_point_current=[coil_data.X[K],coil_data.Y[K],coil_data.Z[K]]
+        coil_point_previous=coil_point
+        coil_point=[coils.X[K],coils.Y[K],coils.Z[K]]
 
-        A=np.subtract(coil_point_current, coil_point_previous)  #difference between the current coil point and the previous one | l
+        A=np.subtract(coil_point, coil_point_previous)  #difference between the current coil point and the previous one | l
 
-        R2_vector=np.subtract(grid_point,coil_point_current)#difference between grid point and current coil point | r-r'[k]
+        R2_vector=np.subtract(grid_point,coil_point)#difference between grid point and current coil point | r-r'[k]
 
         scalar_product = np.dot(A, R2_vector)   #scalar product of l and r-r'[k]
         R2=np.linalg.norm(R2_vector)  #distance between grid point and current coil point | |r-r'[k]|
 
 
-        if coil_data.has_current[K-1]!=0.0:   # if not first point of a coil
+        if coils.has_current[K-1]!=0.0:   # if not first point of a coil
 
             OBCP=1.0/(R2*(R1+R2)+scalar_product)
-            FAZRDA=-(R1+R2)*OBCP/R1/R2*currents[coil_data.coil_number[K]-1] #curco[nco[K]-1] - current in coil
+            FAZRDA=-(R1+R2)*OBCP/R1/R2*currents[coils.coil_number[K]-1] #curco[nco[K]-1] - current in coil
             B_B1=np.cross(R2_vector,A)    #r-r'[k] x l
 
             B=np.add(np.dot(B_B1, FAZRDA), B)
@@ -133,7 +128,7 @@ def read_grid(grid_file, L1i):
     f1.close()
     phi_min=0
     phi_max=2*math.pi/L1i
-    return make_grid(nr,np,nz, rmin, rmax, phi_min, phi_max, zmin, zmax)
+    return grid(nr,np,nz, rmin, rmax, phi_min, phi_max, zmin, zmax)
 
 
 def write_field_to_file(field_file, grid, B, L1i):
@@ -170,4 +165,11 @@ def make_field_file_from_coils(grid_file='biotsavart.inp', coil_file='co_asd.dd'
 
     
 if __name__=="__main__":
-    make_field_file_from_coils()
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--grid_file', default='biotsavart.inp')
+    parser.add_argument('--coil_file', default='co_asd.dd')
+    parser.add_argument('--current_file', default='cur_asd.dd')
+    parser.add_argument('--field_file', default='field.dat')
+    parser.add_argument('--L1i', type=int,default=1)
+    args=parser.parse_args()
+    make_field_file_from_coils(args.grid_file, args.coil_file, args.current_file, args.field_file, args.L1i)

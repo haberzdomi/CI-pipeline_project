@@ -17,6 +17,3 @@ class grid:
         self.R=[R_min+hr*i for i in range(n_R)]
         self.phi=[phi_min+hphi*i for i in range(n_phi)]
         self.Z=[Z_min+hz*i for i in range(n_Z)]
-
-def make_grid(n_R,n_phi,n_Z,R_min,R_max,phi_min,phi_max,Z_min,Z_max):
-    return grid(n_R,n_phi,n_Z,R_min,R_max,phi_min,phi_max,Z_min,Z_max)
