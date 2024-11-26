@@ -111,7 +111,7 @@ def fourier_analysis(n_max):
     # Calculate the first 'n_max' modes of the magnetic field on the radial grid ...
     
     # ... via the handwritten fourier transform in field_c
-    A = bdivfree.vector_potentials(64, g, BR, Bphi, BZ)
+    A = bdivfree.vector_potentials(g, BR, Bphi, BZ)
     BnR=np.empty((n_max, g.nR), dtype=complex)
     for k in range(n_max):
         # n=k+1 because range starts from 0 but n=1 is the first mode.

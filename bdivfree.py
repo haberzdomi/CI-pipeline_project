@@ -12,7 +12,7 @@ class A_splines:
         self.AnZ_Im = [None] * n
 
 
-def vector_potentials(n_max, grid, BnR, Bnphi, BnZ):
+def vector_potentials(grid, BnR, Bnphi, BnZ):
     """Calculate the first n_max modes of the R- and Z-components of the vector potential using fourier transformation and B=rot(A).
     Perform a bivariate spline approximation to evaluate them on the descretized k-space points.
 
@@ -26,6 +26,11 @@ def vector_potentials(n_max, grid, BnR, Bnphi, BnZ):
         A (A_splines): Object containing the spline functions for the first n modes of the real and imaginary parts of the radial and axial vector potential components.
 
     """
+
+    # Get the maximum mode number based on Nyquist theorem. The minus one is
+    # because the last data point in phi-direction is the same as the first one.
+    n_max = int((grid.nphi - 1) / 2)
+
     A = A_splines(n_max)
 
     AnR = empty((grid.nR, grid.nZ), dtype=complex)

@@ -60,7 +60,7 @@ def plot_modes(n_modes=8, figsize=(8, 4)):
         g.Z_max,
     )
 
-    A = vector_potentials(64, g, BR, Bphi, BZ)
+    A = vector_potentials(g, BR, Bphi, BZ)
 
     # Get logaritmic value of the squared norm of the magnetic field for each mode, i.e. for each subplot k
     log_Bn2 = empty((n_modes, g_double.nR, g_double.nZ))
