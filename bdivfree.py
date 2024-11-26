@@ -1,16 +1,19 @@
 from numpy import atleast_1d, empty, exp, linspace, newaxis, pi, squeeze, sum
 from scipy.interpolate import RectBivariateSpline
-    
-class A_splines():
+
+
+class A_splines:
     """Class to store the spline functions for the vector potential components."""
+
     def __init__(self, n=0):
         self.AnR_Re = [None] * n
         self.AnR_Im = [None] * n
         self.AnZ_Re = [None] * n
         self.AnZ_Im = [None] * n
 
+
 def vector_potentials(n_max, grid, BnR, Bnphi, BnZ):
-    """ Calculate the first n_max modes of the R- and Z-components of the vector potential using fourier transformation and B=rot(A). 
+    """Calculate the first n_max modes of the R- and Z-components of the vector potential using fourier transformation and B=rot(A).
     Perform a bivariate spline approximation to evaluate them on the descretized k-space points.
 
     Args:
@@ -24,31 +27,35 @@ def vector_potentials(n_max, grid, BnR, Bnphi, BnZ):
 
     """
     A = A_splines(n_max)
-    
+
     AnR = empty((grid.nR, grid.nZ), dtype=complex)
     AnZ = empty((grid.nR, grid.nZ), dtype=complex)
-    
+
     # Get first n_max modes of the vector potential
     for n in range(1, n_max + 1):
-        fourier = exp(-1j * n * linspace(0, 2 * pi, grid.nphi)) / (grid.nphi - 1); # Fourier coefficients
-        # Calculate the n'th mode of the radial and axial components of 
+        fourier_coef = exp(-1j * n * linspace(0, 2 * pi, grid.nphi)) / (grid.nphi - 1)
+
+        # Calculate the n'th mode of the radial and axial components of
         # the vector potential using fourier transformation and B=rot(A).
         for kR in range(grid.nR):
             for kZ in range(grid.nZ):
-                AnR[kR, kZ] = 1j / n * grid.R[kR] * sum(BnZ[kR, :-1, kZ] * fourier[:-1])
-                AnZ[kR, kZ] = -1j / n * grid.R[kR] * sum(BnR[kR, :-1, kZ] * fourier[:-1])
-        # Interpolation via bivariate spline approximation. 
-        # First two args are the points for which the data is evaluated.
-        # The third argument is the data. 
-        # The last two arguments are the degree of the bivariate spline.
-        A.AnR_Re[n-1] = RectBivariateSpline(grid.R, grid.Z, AnR.real, kx=5, ky=5)
-        A.AnR_Im[n-1] = RectBivariateSpline(grid.R, grid.Z, AnR.imag, kx=5, ky=5)
-        A.AnZ_Re[n-1] = RectBivariateSpline(grid.R, grid.Z, AnZ.real, kx=5, ky=5)
-        A.AnZ_Im[n-1] = RectBivariateSpline(grid.R, grid.Z, AnZ.imag, kx=5, ky=5)
+                AnR[kR, kZ] = (
+                    1j / n * grid.R[kR] * sum(BnZ[kR, :-1, kZ] * fourier_coef[:-1])
+                )
+                AnZ[kR, kZ] = (
+                    -1j / n * grid.R[kR] * sum(BnR[kR, :-1, kZ] * fourier_coef[:-1])
+                )
+        # Interpolation via bivariate spline approximation. The data values (3rd arg) is
+        # defined on the grid (1st and 2nd arg). kx, ky are the degrees of the bivariate spline.
+        A.AnR_Re[n - 1] = RectBivariateSpline(grid.R, grid.Z, AnR.real, kx=5, ky=5)
+        A.AnR_Im[n - 1] = RectBivariateSpline(grid.R, grid.Z, AnR.imag, kx=5, ky=5)
+        A.AnZ_Re[n - 1] = RectBivariateSpline(grid.R, grid.Z, AnZ.real, kx=5, ky=5)
+        A.AnZ_Im[n - 1] = RectBivariateSpline(grid.R, grid.Z, AnZ.imag, kx=5, ky=5)
     return A
 
+
 def field_divfree(R, Z, n, A):
-    """Calculate the n'mode of the magnetic field from the n'th mode of the vector potential 
+    """Calculate the n'mode of the magnetic field from the n'th mode of the vector potential
     components with the assumption, that the phi-component of the vector potential is zero, in order to make it divergence-free
 
     Args:
@@ -66,10 +73,10 @@ def field_divfree(R, Z, n, A):
         BnZ (array[complex float], shape=(len(R),len(Z))): Z-component of the n'th mode of the magnetic field
     """
     # Get the R- and Z-components of the n'th mode of the vector potential and their derivatives
-    AnR = A.AnR_Re[n-1](R, Z) + 1j * A.AnR_Im[n-1](R, Z)
-    AnZ = A.AnZ_Re[n-1](R, Z) + 1j * A.AnZ_Im[n-1](R, Z)
-    dAnR_dZ = A.AnR_Re[n-1](R, Z, dy=1) + 1j * A.AnR_Im[n-1](R, Z, dy=1)
-    dAnZ_dR = A.AnZ_Re[n-1](R, Z, dx=1) + 1j * A.AnZ_Im[n-1](R, Z, dx=1)
+    AnR = A.AnR_Re[n - 1](R, Z) + 1j * A.AnR_Im[n - 1](R, Z)
+    AnZ = A.AnZ_Re[n - 1](R, Z) + 1j * A.AnZ_Im[n - 1](R, Z)
+    dAnR_dZ = A.AnR_Re[n - 1](R, Z, dy=1) + 1j * A.AnR_Im[n - 1](R, Z, dy=1)
+    dAnZ_dR = A.AnZ_Re[n - 1](R, Z, dx=1) + 1j * A.AnZ_Im[n - 1](R, Z, dx=1)
     # Calculate the azimuthal component such that div(B) = 0
     BnR = 1j * n * AnZ / R[:, newaxis]
     Bnphi = dAnR_dZ - dAnZ_dR
