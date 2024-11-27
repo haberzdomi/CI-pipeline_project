@@ -115,14 +115,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--fname",
+        type=str,
         default="field_file",
         help="Output file containing the magnetic field components and calculation parameters.",
     )
     parser.add_argument(
-        "--n_modes", default=8, help="Number of modes which should be plotted"
+        "--n_modes", type=int, default=8, help="Number of modes which should be plotted"
     )
     parser.add_argument(
-        "--figsize", default=(8, 4), help="Size of the figure in inches"
+        "--figsize", type=tuple, default=(8, 4), help="Size of the figure in inches"
     )
     args = parser.parse_args()
 
