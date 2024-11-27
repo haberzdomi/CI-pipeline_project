@@ -35,21 +35,30 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg):
         BZ_analytical (array[float], shape=(nZ,)): the values of BZ(Z), as returned by the analytical formula
     """
     # Create input files for test
-    file1 = open("test_grid_file", "w")
-    print(nR, nphi, nZ, file=file1)
-    print(0, R_max, file=file1)
-    print(-R_max, R_max, file=file1)
-    file1.close()
-    file2 = open("test_coil_file", "w")
-    print(nseg + 1, file=file2)
-    dphi = 2 * np.pi / nseg
-    for i in range(nseg):
-        print(R_0 * np.cos(i * dphi), R_0 * np.sin(i * dphi), 0, 1, 1, file=file2)
-    print(R_0, 0, 0, 0, 1, file=file2)  # connect last point to first point
-    file2.close()
-    file3 = open("test_current_file", "w")
-    print(I_c, file=file3)
-    file3.close()
+    with open("test_grid_file", "w") as coil_file:
+        coil_file.write(f"{nR} {nphi} {nZ} \n")
+        coil_file.write(f"{0} {R_max} \n")
+        coil_file.write(f"{-R_max} {R_max} \n")
+
+    with open("test_coil_file", "w") as coil_file:
+        coil_file.write(f"{nseg + 1} \n")
+
+        dphi = 2 * np.pi / nseg
+        X = R_0 * np.cos(np.arange(nseg) * dphi)
+        X = np.append(X, R_0)  # Close the loop
+        Y = R_0 * np.sin(np.arange(nseg) * dphi)
+        Y = np.append(Y, 0)  # Close the loop
+        Z = np.zeros_like(X)
+        has_current = np.ones_like(X)
+        has_current[-1] = 0  # The last point does not have current
+        coil_number = np.ones_like(X)
+        np.savetxt(
+            coil_file,
+            np.column_stack((X, Y, Z, has_current, coil_number)),
+        )
+
+    with open("test_current_file", "w") as current_file:
+        current_file.write(f"{I_c} \n")
 
     # Run the calculation
     make_field_file_from_coils(
@@ -57,17 +66,10 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg):
     )
 
     # Process output data
-    data = open("test_field_file", "r")
-    for i in range(4):
-        data.readline()
-    BZ_data = np.empty((nR, nphi, nZ))
-    for kR in range(nR):
-        for kphi in range(nphi):
-            for kZ in range(nZ):
-                BZ_data[kR, kphi, kZ] = float(data.readline().split()[2])
-    data.close()
+    _, _, _, BZ = read_field("test_field_file")
+    BZ = BZ[0, 0, :]
 
-    BZ = [BZ_data[0, 0, i] for i in range(nZ)]
+    # Calculate the analytical solution
     Z = np.linspace(-R_max, R_max, nZ)
     BZ_analytic = [BZ_formula(z, R_0, I_c) for z in Z]
 

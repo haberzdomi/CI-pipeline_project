@@ -31,14 +31,14 @@ def calc_biotsavart(grid_coordinates, coils, currents):
         BZI (float): axial component of the magnetic field
     """
 
-    RI = grid_coordinates[0]
-    fI = grid_coordinates[1]
-    ZI = grid_coordinates[2]
-    cosf = np.cos(fI)
-    sinf = np.sin(fI)
-    Y_grid = RI * sinf
-    X_grid = RI * cosf
-    Z_grid = ZI
+    R_grid = grid_coordinates[0]
+    phi_grid = grid_coordinates[1]
+
+    cosf = np.cos(phi_grid)
+    sinf = np.sin(phi_grid)
+    Y_grid = R_grid * sinf
+    X_grid = R_grid * cosf
+    Z_grid = grid_coordinates[2]
     grid_point = [X_grid, Y_grid, Z_grid]
 
     B = [0, 0, 0]
@@ -93,11 +93,8 @@ def read_coils(coil_file):
             coil_number - coil number which the point belongs to
             n_nodes - total number of coil points
     """
-
-    file = open(coil_file, "r")
-    n_nodes = int(file.readline())
-
-    data = np.loadtxt(file)
+    data = np.loadtxt(coil_file, skiprows=1)
+    n_nodes = len(data)
     X = data[:, 0]
     Y = data[:, 1]
     Z = data[:, 2]
@@ -108,51 +105,50 @@ def read_coils(coil_file):
     if has_current[n_nodes - 1] != 0.0:
         raise Exception(str(has_current[n_nodes - 1]) + "=cbc~=0, stop")
 
-    file.close()
     return coils(X, Y, Z, has_current, coil_number, n_nodes)
 
 
 def read_currents(current_file):
-    file = open(current_file, "r")
-    currents = [float(data) for data in file.read().split()]
-    file.close()
+    with open(current_file, "r") as f:
+        currents = [float(data) for data in f.readline().split()]
     return currents
 
 
 def read_grid(grid_file, field_periodicity):
-    f1 = open(grid_file, "r")
-    nR, nphi, nZ = [int(data) for data in f1.readline().split()]
-    R_min, R_max = [float(data) for data in f1.readline().split()]
+    with open(grid_file, "r") as f:
+        nR, nphi, nZ = [int(data) for data in f.readline().split()]
+        R_min, R_max = [float(data) for data in f.readline().split()]
+        Z_min, Z_max = [float(data) for data in f.readline().split()]
     phi_min = 0
     phi_max = 2 * np.pi / field_periodicity
-    Z_min, Z_max = [float(data) for data in f1.readline().split()]
-    f1.close()
 
     return grid(nR, nphi, nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max)
 
 
-def write_field_to_file(field_file, grid, B, field_periodicity):
-    file = open(field_file, "w")
+def write_field_to_file(field_file, grid, BR, Bphi, BZ, field_periodicity):
     # Write the input parameters for the magnetic field calculation to the output file.
-    file.write(f"{grid.nR} {grid.nphi} {grid.nZ} {field_periodicity}\n")
-    file.write(f"{grid.R_min} {grid.R_max}\n")
-    file.write(f"{grid.phi_min} {grid.phi_max}\n")
-    file.write(f"{grid.Z_min} {grid.Z_max}\n")
-    # Loop over the grid points and calculate the magnetic field components.
-    for b in B:
-        file.write(f"{b[0]} {b[1]} {b[2]}\n")
-    file.close()
+    with open(field_file, "w") as f:
+        f.write(f"{grid.nR} {grid.nphi} {grid.nZ} {field_periodicity}\n")
+        f.write(f"{grid.R_min} {grid.R_max}\n")
+        f.write(f"{grid.phi_min} {grid.phi_max}\n")
+        f.write(f"{grid.Z_min} {grid.Z_max}\n")
+        # Write the the magnetic field components to the output file.
+        np.savetxt(f, np.column_stack((BR, Bphi, BZ)))
 
 
 def get_field_on_grid(grid, coils, currents):
-    B = []
+    n_points = grid.nR * grid.nphi * grid.nZ
+    BR = np.empty((n_points))
+    Bphi = np.empty((n_points))
+    BZ = np.empty((n_points))
+    i = 0
     for r in grid.R:
         for p in grid.phi:
             for z in grid.Z:
                 x = [r, p, z]  # coordinates for current grid point
-                B_R, B_phi, B_Z = calc_biotsavart(x, coils, currents)
-                B.append([B_R, B_phi, B_Z])
-    return B
+                BR[i], Bphi[i], BZ[i] = calc_biotsavart(x, coils, currents)
+                i += 1
+    return BR, Bphi, BZ
 
 
 def make_field_file_from_coils(
@@ -167,9 +163,9 @@ def make_field_file_from_coils(
     #
     grid = read_grid(grid_file, field_periodicity)
     #
-    B = get_field_on_grid(grid, coils, currents)
+    BR, Bphi, BZ = get_field_on_grid(grid, coils, currents)
     #
-    write_field_to_file(field_file, grid, B, field_periodicity)
+    write_field_to_file(field_file, grid, BR, Bphi, BZ, field_periodicity)
 
 
 if __name__ == "__main__":

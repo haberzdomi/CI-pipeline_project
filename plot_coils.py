@@ -1,6 +1,6 @@
 import argparse
 import matplotlib.pyplot as plt
-from numpy import loadtxt
+from biotsavart import read_coils
 
 
 def plot_coils(fname, figsize=(6, 5)):
@@ -10,19 +10,19 @@ def plot_coils(fname, figsize=(6, 5)):
         fname (str): File name of the coil geometry
         figsize (tuple, optional): Size of the figure in inches
     """
-    data = loadtxt(fname, skiprows=1, usecols=(0, 1, 2, 4))
-    ncoil = data[-1, 3].astype(int)  # number of coils
-    nseg = (data.shape[0] / ncoil).astype(int)  # size of each coil segment
+    coil_parameters = read_coils(fname)
+    n_coils = coil_parameters.coil_number[-1]  # total number of coils
+    nseg = int(coil_parameters.n_nodes / n_coils)  # size of each coil segment
 
     # Split the data into X, Y, Z coordinates for each coil
-    X = data[:, 0].reshape((ncoil, nseg))
-    Y = data[:, 1].reshape((ncoil, nseg))
-    Z = data[:, 2].reshape((ncoil, nseg))
+    X = coil_parameters.X.reshape((n_coils, nseg))
+    Y = coil_parameters.Y.reshape((n_coils, nseg))
+    Z = coil_parameters.Z.reshape((n_coils, nseg))
 
     ax = plt.figure(figsize=figsize).add_subplot(projection="3d")
-    for k in range(ncoil):
+    for k in range(n_coils):
         # Plot line of the k-th coil
-        ax.plot(X[k, :], Y[k, :], Z[k, :], "-k")
+        ax.plot(X[k,], Y[k, :], Z[k, :], "-k")
     plt.show()
 
 
