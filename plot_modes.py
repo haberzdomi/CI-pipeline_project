@@ -1,18 +1,24 @@
-from numpy import amin, amax, ceil, conj, empty, linspace, loadtxt, log10
-import matplotlib.pyplot as plt
-from matplotlib.colors import Normalize
+import argparse
 from bdivfree import vector_potentials, field_divfree
 from grid import grid
+from matplotlib.colors import Normalize
+import matplotlib.pyplot as plt
+from numpy import amin, amax, ceil, conj, empty, loadtxt, log10
 
 
 def read_field(fname):
-    """From the output of the biosavart_asdex calculation get the discretized 3D-grid and the magnetic field components for each point on this grid.
+    """From fname get the discretized 3D-grid and the magnetic field components for each point on this grid.
+
+    Args:
+        fname (str): File name of the output of the biosavart_asdex calculation.
 
     Returns:
         grid (grid_parameters): Object containing the cylindrical 3D-grid and its parameters.
         BR (array[float], shape=(nR, nphi, nZ)): R-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
         Bphi (array[float], shape=(nR, nphi, nZ)): phi-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
         BZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
+
+
     """
 
     with open(fname, "r") as f:
@@ -32,20 +38,24 @@ def read_field(fname):
     return g, BR, Bphi, BZ
 
 
-def plot_modes(n_modes=8, figsize=(8, 4)):
-    """
-    Read the output of the biotsavart_asdex calculation ('field.dat') and use fourier
-    transformation to calculate the first 'n_modes' modes of R- and Z-component of the
-    magnetic field. Therefore its vector potential is determined and a spline interpolation
-    is used to get points in between the grid for it. Its phi component is calculated such
-    that the magnetic field gets divergency free in every point. The decadic logarithm of
-    the square of the norm of the total magnetic field is caluculated for each of the modes
-    on a grid which has double the resolution of the grid defined for biotsavart_asdex.py.
-    For each mode one subplot is created. The figure has a maximum of four subplots in a row,
-    then a next row starts.
+def plot_modes(fname, n_modes, figsize=(8, 4)):
+    """Get the grid and magnetic field components from fname and use fourier transformation
+    to calculate the first 'n_modes' modes of R- and Z-component of the magnetic field.
+    To ensure a divergence free field, the vector potential is determined and a spline
+    interpolation is used to get points in between the grid for it. Its phi component is
+    calculated such that the magnetic field gets divergency free in every point. The decadic
+    logarithm of the square of the norm of the total magnetic field is caluculated for each
+    of the modes on a grid which has double the resolution of the grid from fname. For each
+    mode one subplot is created. The figure has a maximum of four subplots in a row, then a
+    next row starts.
+
+    Args:
+        fname (str): File name of the output of the biotsavart_asdex calculation.
+        n_modes (int): Number of modes which should be plotted.
+        figsize (tuple, optional): Size of the figure in inches.
     """
 
-    g, BR, Bphi, BZ = read_field("field.dat")
+    g, BR, Bphi, BZ = read_field(fname)
 
     # Evaluating the magnetic field modes on a grid with double the resolution of the B-field grid
     g_double = grid(
@@ -99,3 +109,21 @@ def plot_modes(n_modes=8, figsize=(8, 4)):
     cbar = fig.colorbar(im, ax=axs, location="right")
     cbar.set_label(r"$\log_{10} |\vec{B}_{n}|^{2}$")
     plt.show()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--fname",
+        default="field.dat",
+        help="File name of the output of the biotsavart_asdex calculation",
+    )
+    parser.add_argument(
+        "--n_modes", default=8, help="Number of modes which should be plotted"
+    )
+    parser.add_argument(
+        "--figsize", default=(8, 4), help="Size of the figure in inches"
+    )
+    args = parser.parse_args()
+
+    plot_modes(args.fname, args.n_modes, args.figsize)
