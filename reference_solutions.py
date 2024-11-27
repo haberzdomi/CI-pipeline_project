@@ -3,7 +3,7 @@ from biotsavart import make_field_file_from_coils
 from plot_modes import read_field
 import os
 import numpy as np
-import bdivfree
+from bdivfree import get_A_field_modes, calc_B_field_modes
 
 def BZ_formula(z, R, I):
     """Analytical formula for the magnetic field of a circular current loop along its axis
@@ -100,12 +100,12 @@ def fourier_analysis(n_max):
     # Calculate the first 'n_max' modes of the magnetic field on the radial grid ...
     
     # ... via the handwritten fourier transform in field_c
-    A = bdivfree.vector_potentials(g, BR, Bphi, BZ)
+    A = get_A_field_modes(g, BR, Bphi, BZ)
     BnR=np.empty((n_max, g.nR), dtype=complex)
     for k in range(n_max):
         # n=k+1 because range starts from 0 but n=1 is the first mode.
         # Fix Z to the middle of the axial grid
-        BnR[k], Bnphi, BnZ = bdivfree.field_divfree(g.R, g.Z[g.nZ//2], k + 1, A)    
+        BnR[k], Bnphi, BnZ = calc_B_field_modes(g.R, g.Z[g.nZ//2], k + 1, A)    
     
     # ... via the method numpy.fft.fft. 
     BnR_fft=np.empty((n_max, g.nR))

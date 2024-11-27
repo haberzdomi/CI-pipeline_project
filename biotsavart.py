@@ -119,22 +119,22 @@ def read_currents(current_file):
 
 
 
-def read_grid(grid_file, L1i):
+def read_grid(grid_file, field_periodicity):
     f1=open(grid_file,'r')
     nR,nphi,nZ=[int(data) for data in f1.readline().split()] # number of grid points in r, phi, z direction
     R_min, R_max=[float(data) for data in f1.readline().split()] # min and max values for r
     phi_min = 0
-    phi_max = 2*np.pi/L1i
+    phi_max = 2*np.pi/field_periodicity
     Z_min, Z_max=[float(data) for data in f1.readline().split()] # min and max values for z
     f1.close()
 
     return grid(nR, nphi, nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max)
 
 
-def write_field_to_file(field_file, grid, B, L1i):
+def write_field_to_file(field_file, grid, B, field_periodicity):
     file=open(field_file,'w')
     # Write the input parameters for the magnetic field calculation to the output file.
-    file.write(f"{grid.nR} {grid.nphi} {grid.nZ} {L1i}\n")
+    file.write(f"{grid.nR} {grid.nphi} {grid.nZ} {field_periodicity}\n")
     file.write(f"{grid.R_min} {grid.R_max}\n")
     file.write(f"{grid.phi_min} {grid.phi_max}\n")
     file.write(f"{grid.Z_min} {grid.Z_max}\n")
@@ -153,15 +153,15 @@ def get_field_on_grid(grid, coils, currents):
                 B.append([B_R, B_phi, B_Z])
     return B
 
-def make_field_file_from_coils(grid_file='biotsavart.inp', coil_file='co_asd.dd', current_file='cur_asd.dd', field_file='field.dat', L1i=1):
+def make_field_file_from_coils(grid_file='biotsavart.inp', coil_file='co_asd.dd', current_file='cur_asd.dd', field_file='field.dat', field_periodicity=1):
     coils = read_coils(coil_file)
     currents = read_currents(current_file)
     #
-    grid = read_grid(grid_file, L1i)
+    grid = read_grid(grid_file, field_periodicity)
     #
     B = get_field_on_grid(grid,coils,currents)
     #
-    write_field_to_file(field_file, grid, B, L1i)
+    write_field_to_file(field_file, grid, B, field_periodicity)
 
     
 if __name__=="__main__":
@@ -170,6 +170,6 @@ if __name__=="__main__":
     parser.add_argument('--coil_file', default='co_asd.dd')
     parser.add_argument('--current_file', default='cur_asd.dd')
     parser.add_argument('--field_file', default='field.dat')
-    parser.add_argument('--L1i', type=int,default=1)
+    parser.add_argument('--field_periodicity', type=int, default=1)
     args=parser.parse_args()
-    make_field_file_from_coils(args.grid_file, args.coil_file, args.current_file, args.field_file, args.L1i)
+    make_field_file_from_coils(args.grid_file, args.coil_file, args.current_file, args.field_file, args.field_periodicity)

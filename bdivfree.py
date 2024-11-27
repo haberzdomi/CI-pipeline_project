@@ -12,7 +12,7 @@ class A_splines:
         self.AnZ_Im = [None] * n
 
 
-def vector_potentials(grid, BnR, Bnphi, BnZ):
+def get_A_field_modes(grid, BnR, Bnphi, BnZ):
     """Calculate the first n_max modes of the R- and Z-components of the vector potential using fourier transformation and B=rot(A).
     Perform a bivariate spline approximation to evaluate them on the descretized k-space points.
 
@@ -59,7 +59,7 @@ def vector_potentials(grid, BnR, Bnphi, BnZ):
     return A
 
 
-def field_divfree(R, Z, n, A):
+def calc_B_field_modes(R, Z, n, A):
     """Calculate the n'mode of the magnetic field from the n'th mode of the vector potential
     components with the assumption, that the phi-component of the vector potential is zero, in order to make it divergence-free
 

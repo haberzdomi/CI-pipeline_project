@@ -1,5 +1,5 @@
 import argparse
-from bdivfree import vector_potentials, field_divfree
+from bdivfree import get_A_field_modes, calc_B_field_modes
 from grid import grid
 from matplotlib.colors import Normalize
 import matplotlib.pyplot as plt
@@ -70,12 +70,12 @@ def plot_modes(fname, n_modes, figsize=(8, 4)):
         g.Z_max,
     )
 
-    A = vector_potentials(g, BR, Bphi, BZ)
+    A = get_A_field_modes(g, BR, Bphi, BZ)
 
     # Get logaritmic value of the squared norm of the magnetic field for each mode, i.e. for each subplot k
     log_Bn2 = empty((n_modes, g_double.nR, g_double.nZ))
     for k in range(n_modes):
-        BnR, Bnphi, BnZ = field_divfree(g_double.R, g_double.Z, k + 1, A)
+        BnR, Bnphi, BnZ = calc_B_field_modes(g_double.R, g_double.Z, k + 1, A)
         # Add up the squared norm of the B-field components and take the logarithm of it
         log_Bn2[k, :, :] = log10(
             (BnR * conj(BnR) + Bnphi * conj(Bnphi) + BnZ * conj(BnZ)).real
