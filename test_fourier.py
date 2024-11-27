@@ -11,7 +11,7 @@ def test_fourier(n_max=8):
     calculated on a grid in radial dimension defined by defined by R_min, 
     R_max and nR. The z-component is fixed to the middle value of the grid 
     defined by Z_min, Z_max and nZ, i.e on the index nZ//2. These input 
-    parameters are read from field.dat. The solutions are also compared 
+    parameters are read from field_file. The solutions are also compared 
     visually in a line plot for each of the first 'n_max' modes. 
     
 

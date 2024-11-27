@@ -29,7 +29,7 @@ def plot_coils(fname, figsize=(6, 5)):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--fname", default="co_asd.dd", help="File name of the coil geometry"
+        "--fname", default="coil_file", help="Input file containing the coil geometry."
     )
     parser.add_argument(
         "--figsize", default=(6, 5), help="Size of the figure in inches"

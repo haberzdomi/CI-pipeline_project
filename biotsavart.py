@@ -78,16 +78,17 @@ def calc_biotsavart(grid_coordinates, coils, currents):
 
 
 def read_coils(coil_file):
-    """
-    Return the data in co_asd.dd and cur_asd.dd
+    """ 
+    Return the data in coil_file as a coils object.
     
     Args: 
         None
     Returns:
-        XO, YO, ZO - coodinate lists of coil points
-        cur - 0 if last point in a coil, otherwise 1
-        nco - coil number
-        nnodc - number of coil points
+        coils object with the following attributes:
+            X, Y, Z - coodinate lists of coil points
+            has_current - 0 if last point in a coil, otherwise 1
+            coil_number - coil number which the point belongs to
+            n_nodes - total number of coil points
     """
 
     file = open(coil_file, 'r')
@@ -153,7 +154,7 @@ def get_field_on_grid(grid, coils, currents):
                 B.append([B_R, B_phi, B_Z])
     return B
 
-def make_field_file_from_coils(grid_file='biotsavart.inp', coil_file='co_asd.dd', current_file='cur_asd.dd', field_file='field.dat', field_periodicity=1):
+def make_field_file_from_coils(grid_file='grid_file', coil_file='coil_file', current_file='current_file', field_file='field_file', field_periodicity=1):
     coils = read_coils(coil_file)
     currents = read_currents(current_file)
     #
@@ -166,10 +167,10 @@ def make_field_file_from_coils(grid_file='biotsavart.inp', coil_file='co_asd.dd'
     
 if __name__=="__main__":
     parser=argparse.ArgumentParser()
-    parser.add_argument('--grid_file', default='biotsavart.inp')
-    parser.add_argument('--coil_file', default='co_asd.dd')
-    parser.add_argument('--current_file', default='cur_asd.dd')
-    parser.add_argument('--field_file', default='field.dat')
-    parser.add_argument('--field_periodicity', type=int, default=1)
+    parser.add_argument('--grid_file', type=str, default='grid_file', help='Input file containing the grid information.')
+    parser.add_argument('--coil_file', type=str, default='coil_file', help='Input file containing the coil geometry.')
+    parser.add_argument('--current_file', type=str, default='current_file', help='Input file containing the currents of each coil.')
+    parser.add_argument('--field_file', type=str, default='field_file', help='Output file containing the magnetic field components and calculation parameters.')
+    parser.add_argument('--field_periodicity', type=int, default=1, help='Periodicity of the field in phi direction used for Tokamaks.')
     args=parser.parse_args()
     make_field_file_from_coils(args.grid_file, args.coil_file, args.current_file, args.field_file, args.field_periodicity)

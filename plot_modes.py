@@ -115,8 +115,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--fname",
-        default="field.dat",
-        help="File name of the output of the biotsavart_asdex calculation",
+        default="field_file",
+        help="Output file containing the magnetic field components and calculation parameters.",
     )
     parser.add_argument(
         "--n_modes", default=8, help="Number of modes which should be plotted"
