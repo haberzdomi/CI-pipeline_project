@@ -3,9 +3,20 @@ from scipy.interpolate import RectBivariateSpline
 
 
 class A_splines:
-    """Class to store the spline functions for the vector potential components."""
-
     def __init__(self, n=0):
+        """Class to store the spline functions for the vector potential components.
+
+        Args:
+            n (int, optional): highest mode number to be calculated. Defaults to 0.
+
+        Attributes:
+            AnR_Re (List[RectBivariateSpline], size=n): Spline function of the real part of the first n modes of the radial component of the vector potential.
+            AnR_Im (List[RectBivariateSpline], size=n): Spline function of the imaginary part of the first n modes of the radial component of the vector potential.
+            AnZ_Re (List[RectBivariateSpline], size=n): Spline function of the real part of the first n modes of the axial component of the vector potential.
+            AnZ_Im (List[RectBivariateSpline], size=n): Spline function of the imaginary part of the first n modes of the axial component of the vector potential.
+            Defaults to None lists of size n.
+        """
+
         self.AnR_Re = [None] * n
         self.AnR_Im = [None] * n
         self.AnZ_Re = [None] * n
@@ -24,7 +35,6 @@ def get_A_field_modes(grid, BnR, Bnphi, BnZ):
         BnZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
     Returns:
         A (A_splines): Object containing the spline functions for the first n modes of the real and imaginary parts of the radial and axial vector potential components.
-
     """
 
     # Get the maximum mode number based on Nyquist theorem. The minus one is

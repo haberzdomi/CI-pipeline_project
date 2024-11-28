@@ -14,7 +14,7 @@ def BZ_formula(z, R, I):
         I (float): current flowing through the loop
 
     Returns:
-        Result of the formula
+        Magnetic field Bz (float) at position z along the axis of the loop
     """
     return I * R**2 * 2 * np.pi / (R**2 + z**2) ** (3 / 2)
 
@@ -30,9 +30,9 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg):
         nseg (int): the number of segments in the discretisation of the loop
 
     Returns:
-        Z (array[float], shape=(nZ,)): the array of equidistant Z coordinates of the computational grid
-        BZ (array[float], shape=(nZ,)): the values of BZ(Z), as returned by biotsavart_asdex
-        BZ_analytical (array[float], shape=(nZ,)): the values of BZ(Z), as returned by the analytical formula
+        Z (array[float], shape=(nZ, )): the array of equidistant Z coordinates of the computational grid
+        BZ (array[float], shape=(nZ, )): the values of BZ(Z), as returned by biotsavart_asdex
+        BZ_analytical (array[float], shape=(nZ, )): the values of BZ(Z), as returned by the analytical formula
     """
     # Create input files for test
     with open("test_grid_file", "w") as coil_file:

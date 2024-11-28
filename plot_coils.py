@@ -8,7 +8,7 @@ def plot_coils(fname, figsize=(6, 5)):
 
     Args:
         fname (str): File name of the coil geometry
-        figsize (tuple, optional): Size of the figure in inches
+        figsize (tuple, optional): Size of the figure in inches. Defaults to (6, 5).
     """
     coil_parameters = read_coils(fname)
     n_coils = coil_parameters.coil_number[-1]  # total number of coils

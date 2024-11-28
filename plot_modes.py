@@ -50,7 +50,7 @@ def plot_modes(fname, n_modes, figsize=(8, 4)):
     Args:
         fname (str): File name of the output of the biotsavart_asdex calculation.
         n_modes (int): Number of modes which should be plotted.
-        figsize (tuple, optional): Size of the figure in inches.
+        figsize (tuple, optional): Size of the figure in inches. Defaults to (8, 4).
     """
 
     g, BR, Bphi, BZ = read_field(fname)
