@@ -63,11 +63,11 @@ def calc_biotsavart(grid_coordinates, coils, currents):
 
         if coils.has_current[K-1]!=0.0:   # if not first point of a coil
 
-            OBCP=1.0/(R2*(R1+R2)+scalar_product)
-            FAZRDA=-(R1+R2)*OBCP/R1/R2*currents[coils.coil_number[K]-1] #curco[nco[K]-1] - current in coil
-            B_B1=np.cross(R2_vector,L)    #r-r'[k] x l
+            factor1=1.0/(R2*(R1+R2)+scalar_product)
+            factor2=-(R1+R2)*factor1/R1/R2*currents[coils.coil_number[K]-1] #curco[nco[K]-1] - current in coil
+            cross_product=np.cross(R2_vector,L)    #r-r'[k] x l
 
-            B=np.add(np.dot(B_B1, FAZRDA), B)
+            B=np.add(np.dot(cross_product, factor2), B)
 
         R1=R2
 
