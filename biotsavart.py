@@ -73,12 +73,13 @@ def calc_biotsavart(grid_coordinates, coils, currents):
         R2 = np.linalg.norm(R2_vector)
 
         if coils.has_current[K - 1] != 0.0:  # If not first point of a coil
+            factor1 = 1.0 / (R2 * (R1 + R2) + scalar_product)
+            factor2 = (
+                -(R1 + R2) * factor1 / R1 / R2 * currents[coils.coil_number[K] - 1]
+            )
+            cross_product = np.cross(R2_vector, L)  # r-r'[k] x L
 
-            OBCP = 1.0 / (R2 * (R1 + R2) + scalar_product)
-            FAZRDA = -(R1 + R2) * OBCP / R1 / R2 * currents[coils.coil_number[K] - 1]
-            B_B1 = np.cross(R2_vector, L)
-
-            B = np.add(np.dot(B_B1, FAZRDA), B)
+            B = np.add(np.dot(cross_product, factor2), B)
 
         R1 = R2
 
