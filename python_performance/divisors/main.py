@@ -31,18 +31,21 @@ import timeit
 # 6.1) Under which conditions does calculate_divisors_numba perform well?
 #   calculate_divisors_numba performs best for high number of iterations and a moderate low input number for the divisor functions
 #   e.g. n_iteration = 1000000, number (divisors) = 2000
-# 6.2) Is calculate_divisors_numba_parallel always faster than calculate_divisors_numba?
+# 6.2) Is calculate_divisors_nb_parallel always faster than calculate_divisors_nb?
 #   No, if the input number for the divisor functions is high, parallel performs better.
 #   e.g. n_iteration = 10000, number (divisors) = 1000000
 # 6.3) When is it not?
 #   If the input number for the divisor functions is low.
 #   e.g. n_iteration = 100000, number (divisors) = 10
+
+
 if __name__ == "__main__":
+    m_div = 10
     n_iterations = 100000
     print("Python solution:")
     print(
         timeit.timeit(
-            "calculate_divisors(10)",
+            "calculate_divisors(" + str(m_div) + ")",
             setup="from divisors_simple import calculate_divisors",
             number=n_iterations,
         )
@@ -51,7 +54,7 @@ if __name__ == "__main__":
     print("NumPy (vectorized) solution:")
     print(
         timeit.timeit(
-            "calculate_divisors_vectorized(10)",
+            "calculate_divisors_vectorized(" + str(m_div) + ")",
             setup="from divisors_simple import calculate_divisors_vectorized",
             number=n_iterations,
         )
@@ -59,44 +62,46 @@ if __name__ == "__main__":
 
     # print("Concurrent solution:")
     # print(
-    #    timeit.timeit(
-    #        "calculate_divisors_concurrent(10)",
-    #        setup="from divisors_concurrent import calculate_divisors_concurrent",
-    #        number=n_iterations,
-    #    )
+    #     timeit.timeit(
+    #         "calculate_divisors_concurrent(" + str(m_div) + ")",
+    #         setup="from divisors_concurrent import calculate_divisors_concurrent",
+    #         number=n_iterations,
+    #     )
     # )
 
     # print("Multiprocessing async solution:")
     # print(
-    #    timeit.timeit(
-    #        "calculate_divisors_multiprocessing_async(10)",
-    #        setup="from divisors_multiprocessing import calculate_divisors_multiprocessing_async",
-    #        number=n_iterations,
-    #    )
+    #     timeit.timeit(
+    #         "calculate_divisors_multiprocessing_async(" + str(m_div) + ")",
+    #         setup="from divisors_multiprocessing import calculate_divisors_multiprocessing_async",
+    #         number=n_iterations,
+    #     )
     # )
 
     # print("Multiprocessing starmap solution:")
     # print(
-    #    timeit.timeit(
-    #        "calculate_divisors_multiprocessing_starmap(10)",
-    #        setup="from divisors_multiprocessing import calculate_divisors_multiprocessing_starmap",
-    #        number=n_iterations,
-    #    )
+    #     timeit.timeit(
+    #         "calculate_divisors_multiprocessing_starmap(" + str(m_div) + ")",
+    #         setup="from divisors_multiprocessing import calculate_divisors_multiprocessing_starmap",
+    #         number=n_iterations,
+    #     )
     # )
 
+    # Effective with mid-low divisor input and high iteration number
     print("Numba (sequential) solution:")
     print(
         timeit.timeit(
-            "calculate_divisors_numba(10)",
-            setup="from divisors_numba import calculate_divisors_numba",
+            "calculate_divisors_nb_sequential(" + str(m_div) + ")",
+            setup="from divisors_numba import calculate_divisors_nb_sequential",
             number=n_iterations,
         )
     )
+    # Effective with high divisor input
     print("Numba (parallel) solution:")
     print(
         timeit.timeit(
-            "calculate_divisors_numba_parallel(10)",
-            setup="from divisors_numba import calculate_divisors_numba_parallel",
+            "calculate_divisors_nb_parallel(" + str(m_div) + ")",
+            setup="from divisors_numba import calculate_divisors_nb_parallel",
             number=n_iterations,
         )
     )

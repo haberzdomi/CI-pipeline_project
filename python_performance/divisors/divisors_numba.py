@@ -2,7 +2,7 @@ import numpy as np
 import numba as nb
 
 @nb.jit(nopython=True)
-def calculate_divisors_numba(number):
+def calculate_divisors_nb_sequential(number):
     max_divisor = number // 2
     bool_divisor_array = np.zeros(max_divisor + 1, dtype=np.bool_)
 
@@ -13,7 +13,7 @@ def calculate_divisors_numba(number):
     return bool_divisor_array
 
 @nb.jit(nopython=True, parallel=True)
-def calculate_divisors_numba_parallel(number):
+def calculate_divisors_nb_parallel(number):
     max_divisor = number // 2
     bool_divisor_array = np.zeros(max_divisor + 1, dtype=np.bool_)
 

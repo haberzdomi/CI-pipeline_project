@@ -53,3 +53,7 @@ if __name__ == "__main__":
             number=100000,
         )
     )
+
+## In the Python solutions the dynamic solution is faster than the closed form solution. The sequential closed form
+## solution is the fastest. The parallel solutions are slower than the sequential solutions while the closed form
+## is still faster than the dynamic solution.
