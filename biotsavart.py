@@ -76,6 +76,58 @@ def calc_biotsavart(grid_coordinates, coils, currents):
 
     return B_R, B_phi, B_Z
 
+def calc_biotsavart_vectorized(grid_coordinates, coils, currents):
+    """
+    Calculate the magnetic field components by 
+    evaluating the Biot-Savart integral.
+
+    Args:
+        grid_coordinates (array[float], shape=(3)): cylindrical coordinates of the grid point
+        coil_data: coordinates of the coil points
+
+    Returns:
+        BRI (float): radial component fo the magnetic field
+        BfI (float): toroidal component of the magnetic field
+        BZI (float): axial component of the magnetic field
+    """
+
+    RI=grid_coordinates[0]
+    fI=grid_coordinates[1]
+    ZI=grid_coordinates[2]
+    cosf=np.cos(fI)
+    sinf=np.sin(fI)
+    Y_grid=RI*sinf  #cartesian coordinates of grid point
+    X_grid=RI*cosf
+    Z_grid=ZI
+    grid_point=[X_grid,Y_grid,Z_grid]
+
+
+    coil_points=np.zeros((coils.n_nodes, 3))
+    coil_points[:,0]=coils.X
+    coil_points[:,1]=coils.Y
+    coil_points[:,2]=coils.Z
+    R_vectors=np.subtract(grid_point,coil_points)
+
+    R = np.linalg.norm(R_vectors, axis=1)
+
+    L_vectors = np.subtract(coil_points[1:], coil_points[:-1])
+
+    scalar_products = np.einsum('ij,ij->i', L_vectors, R_vectors[1:])
+
+    current_list = [currents[i-1] for i in coils.coil_number[1:]]
+
+    factor1_list=1/(R[1:]*(R[:-1]+R[1:])+scalar_products)
+    factor2_list=-(R[:-1]+R[1:])*factor1_list/R[:-1]/R[1:]*coils.has_current[:-1]*current_list
+    cross_products=np.cross(R_vectors[1:], L_vectors)
+
+    B = np.sum(cross_products*factor2_list[:,np.newaxis], axis=0)
+
+    B_R=B[0]*cosf+B[1]*sinf
+    B_phi=B[1]*cosf-B[0]*sinf
+    B_Z = B[2]
+
+    return B_R, B_phi, B_Z
+
 
 def read_coils(coil_file):
     """
@@ -143,13 +195,13 @@ def write_field_to_file(field_file, grid, B, L1i):
         file.write(f"{b[0]} {b[1]} {b[2]}\n")
     file.close()
 
-def get_field_on_grid(grid, coils, currents):
+def get_field_on_grid(grid, coils, currents, integrator):
     B=[]
     for r in grid.R:
         for p in grid.phi:
             for z in grid.Z:
                 x = [r,p,z] # coordinates for current grid point
-                B_R, B_phi, B_Z=calc_biotsavart(x, coils, currents)
+                B_R, B_phi, B_Z=integrator(x, coils, currents)
                 B.append([B_R, B_phi, B_Z])
     return B
 
@@ -159,7 +211,7 @@ def make_field_file_from_coils(grid_file='biotsavart.inp', coil_file='co_asd.dd'
     #
     grid = read_grid(grid_file, L1i)
     #
-    B = get_field_on_grid(grid,coils,currents)
+    B = get_field_on_grid(grid,coils,currents,calc_biotsavart)
     #
     write_field_to_file(field_file, grid, B, L1i)
 
