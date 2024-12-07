@@ -15,7 +15,6 @@ import timeit
 #   so one divisor calculation is not dependent on the others.
 #   The length of the array is doubled, but not the time.
 
-
 # 3.) n_iteration = 20, number (divisors) = 2000:
 #   python solution - roughly doubled
 #   NumPy (vectorized) solution - roughly doubled
@@ -91,8 +90,8 @@ if __name__ == "__main__":
     print("Numba (sequential) solution:")
     print(
         timeit.timeit(
-            "calculate_divisors_nb_sequential(" + str(m_div) + ")",
-            setup="from divisors_numba import calculate_divisors_nb_sequential",
+            "calculate_divisors_nb_seq(" + str(m_div) + ")",
+            setup="from divisors_numba import calculate_divisors_nb_seq",
             number=n_iterations,
         )
     )
