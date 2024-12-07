@@ -4,13 +4,14 @@ from grid import grid
 from matplotlib.colors import Normalize
 import matplotlib.pyplot as plt
 from numpy import amin, amax, ceil, conj, empty, loadtxt, log10
+from os.path import exists
 
 
 def read_field(fname):
     """From fname get the discretized 3D-grid and the magnetic field components for each point on this grid.
 
     Args:
-        fname (str): File name of the output of the biosavart_asdex calculation.
+        fname (str): File name of the output of the biosavart_asdex calculation. If the file does not exist, the file "field_original.dat" is taken.
 
     Returns:
         grid (grid_parameters): Object containing the cylindrical 3D-grid and its parameters.
@@ -18,6 +19,8 @@ def read_field(fname):
         Bphi (array[float], shape=(nR, nphi, nZ)): phi-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
         BZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
     """
+    if not exists(fname):
+        fname = "field_original.dat"
 
     with open(fname, "r") as f:
         nR, nphi, nZ, _ = [int(data) for data in f.readline().split()]
