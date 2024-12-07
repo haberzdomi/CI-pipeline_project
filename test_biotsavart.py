@@ -5,15 +5,12 @@ from biotsavart import calc_biotsavart, calc_biotsavart_vectorized
 
 
 @pytest.mark.parametrize(
-    "R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator, tol",
+    "R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator",
     [
-        [4, 2, 2, 32, 4, 3, 64, calc_biotsavart, 0.04],
+        [4, 2, 2, 32, 4, 3, 64, calc_biotsavart],
     ],
-    ##tolerance was chosen by comparing the formula for a circular loop and the formula for a polygon-shaped loop.
-    ##the maximum value of the analytical solution was multiplied with the factor n*tan(pi/n)/pi
-    ##the approximate difference was chosen as the tolerance
 )
-def test_biotsavart(R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator, tol):
+def test_biotsavart(R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator):
     """test the circular_current function to assert, whether the result using biotsavart_asdex is sufficiently
     close to the analytical solution with the example of a circular current loop
 
@@ -37,5 +34,11 @@ def test_biotsavart(R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator, tol):
     plt.xlabel("Z")
     plt.ylabel("BZ")
     plt.show()
+
+    # Tolerance was chosen by comparing the formula for a circular loop and the formula for a polygon-shaped loop.
+    # The maximum value of the analytical solution was multiplied with the factor nseg*tan(pi/nseg)/pi
+    # and the machine epsilon was added to account for numerical errors.
+    machine_epsilon = np.finfo(np.float64).eps
+    tol = max(BZ_analytic) * (nseg * np.tan(np.pi / nseg) / np.pi - 1) + machine_epsilon
 
     assert np.all([abs(BZ[i] - BZ_analytic[i]) < tol for i in range(nZ)])
