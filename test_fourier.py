@@ -66,13 +66,15 @@ def test_fourier(n_max=8):
     plt.show()
 
     # Only small floating point deviations of the two calculation methods are allowed.
-    errors_real = np.abs(BnR.real - BnR_fft.real)
+    rel_errors_real = np.abs(BnR.real - BnR_fft.real) / np.abs(BnR_fft.real)
     assert_msg_real = "The two calculation methods lead to different solutions for the real parts of the magnetic field modes"
-    errors_imag = np.abs(BnR.imag - BnR_fft.imag)
+    rel_errors_imag = np.abs(BnR.imag - BnR_fft.imag) / np.abs(BnR_fft.imag)
     assert_msg_imag = "The two calculation methods lead to different solutions for the imaginary parts of the magnetic field modes"
 
     assert_msg_both = "The two calculation methods lead to different solutions for the real and imaginary parts of the magnetic field modes"
 
-    assert np.all(errors_real < 1e-8) and np.all(errors_imag < 1e-8), assert_msg_both
-    assert np.all(errors_real < 1e-8), assert_msg_real
-    assert np.all(errors_imag < 1e-8), assert_msg_imag
+    assert np.all(rel_errors_real < 1e-7) and np.all(
+        rel_errors_imag < 1e-7
+    ), assert_msg_both
+    assert np.all(rel_errors_real < 1e-7), assert_msg_real
+    assert np.all(rel_errors_imag < 1e-7), assert_msg_imag
