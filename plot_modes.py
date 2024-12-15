@@ -109,7 +109,7 @@ def plot_modes(fname, n_modes, figsize=(8, 4)):
     # Add colorbar and labels
     cbar = fig.colorbar(im, ax=axs, location="right")
     cbar.set_label(r"$\log_{10} |\vec{B}_{n}|^{2}$")
-    plt.show()
+    plt.savefig("field_modes.png")
 
 
 if __name__ == "__main__":
