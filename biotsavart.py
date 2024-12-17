@@ -4,9 +4,21 @@
 import numpy as np
 from grid import grid
 import argparse
+import numba as nb
 
-
+@nb.experimental.jitclass([('X', nb.float64[:]), 
+                           ('Y', nb.float64[:]), 
+                           ('Z', nb.float64[:]), 
+                           ('has_current', nb.float64[:]), 
+                           ('coil_number', nb.int32[:]),
+                           ('n_nodes', nb.int32)])
 class coils:
+    X: np.ndarray
+    Y: np.ndarray
+    Z: np.ndarray
+    has_current: np.ndarray
+    coil_number: np.ndarray
+    n_nodes: int
     def __init__(self, X, Y, Z, has_current, coil_number, n_nodes):
         """Object to store the coil data.
 
@@ -26,6 +38,8 @@ class coils:
         self.n_nodes = n_nodes
 
 
+
+@nb.njit
 def calc_biotsavart(grid_coordinates, coils, currents):
     """
     Calculate the magnetic field components by evaluating the Biot-Savart integral for the
@@ -49,11 +63,11 @@ def calc_biotsavart(grid_coordinates, coils, currents):
     Y_grid = R_grid * sinf
     X_grid = R_grid * cosf
     Z_grid = grid_coordinates[2]
-    grid_point = [X_grid, Y_grid, Z_grid]
+    grid_point = np.array([X_grid, Y_grid, Z_grid])
 
-    B = [0, 0, 0]
+    B = np.array([0., 0., 0.])
 
-    coil_point = [coils.X[0], coils.Y[0], coils.Z[0]]
+    coil_point = np.array([coils.X[0], coils.Y[0], coils.Z[0]])
 
     # Distance between grid point and first coil point: |r-r'[0]|
     R1_vector = np.subtract(grid_point, coil_point)
@@ -61,7 +75,7 @@ def calc_biotsavart(grid_coordinates, coils, currents):
 
     for K in range(1, coils.n_nodes):  # loops through the remaining coil points
         coil_point_previous = coil_point
-        coil_point = [coils.X[K], coils.Y[K], coils.Z[K]]
+        coil_point = np.array([coils.X[K], coils.Y[K], coils.Z[K]])
 
         # Difference between the current coil point and the previous one.
         L = np.subtract(coil_point, coil_point_previous)
@@ -74,12 +88,10 @@ def calc_biotsavart(grid_coordinates, coils, currents):
 
         if coils.has_current[K - 1] != 0.0:  # If not first point of a coil
             factor1 = 1.0 / (R2 * (R1 + R2) + scalar_product)
-            factor2 = (
-                -(R1 + R2) * factor1 / R1 / R2 * currents[coils.coil_number[K] - 1]
-            )
+            factor2 = (-(R1 + R2) * factor1 / R1 / R2 * currents[coils.coil_number[K] - 1])
             cross_product = np.cross(R2_vector, L)  # r-r'[k] x L
 
-            B = np.add(np.dot(cross_product, factor2), B)
+            B = cross_product* factor2+ B
 
         R1 = R2
 
@@ -89,69 +101,8 @@ def calc_biotsavart(grid_coordinates, coils, currents):
 
     return BR, Bphi, BZ
 
-def calc_biotsavart_vectorized(grid_coordinates, coils, currents):
-    """
-    Calculate the magnetic field components by evaluating the Biot-Savart integral for the
-    given coil geometry and currents.
 
-    Args:
-        grid_coordinates (array[float], shape=(3)): cylindrical coordinates of the grid point
-        coils (coils object): coil data
-        currents (List[float], length=n_coils): Currents of each coil. n_coils is the total number of coils
-    Returns:
-        BR (float): Radial component fo the magnetic field
-        Bphi (float): Toroidal component of the magnetic field
-        BZ (float): Axial component of the magnetic field
-    """
-
-    R_grid = grid_coordinates[0]
-    phi_grid = grid_coordinates[1]
-
-    cosf = np.cos(phi_grid)
-    sinf = np.sin(phi_grid)
-    Y_grid = R_grid * sinf
-    X_grid = R_grid * cosf
-    Z_grid = grid_coordinates[2]
-    grid_point = [X_grid, Y_grid, Z_grid]
-
-    B=[0,0,0]
-
-    coil_point = [coils.X[0], coils.Y[0], coils.Z[0]]
-
-    # Distance between grid point and first coil point: |r-r'[0]|
-    R1_vector = np.subtract(grid_point, coil_point)
-    R1 = np.linalg.norm(R1_vector)
-
-    for K in range(1, coils.n_nodes):  # loops through the remaining coil points
-        coil_point_previous = coil_point
-        coil_point = [coils.X[K], coils.Y[K], coils.Z[K]]
-
-        # Difference between the current coil point and the previous one.
-        L = np.subtract(coil_point, coil_point_previous)
-        # Difference between grid point and current coil point: | r-r'[k]
-        R2_vector = np.subtract(grid_point, coil_point)
-        # Scalar product of L and r-r'[k]
-        scalar_product = np.dot(L, R2_vector)
-        # Distance between grid point and current coil point: |r-r'[k]|
-        R2 = np.linalg.norm(R2_vector)
-
-        if coils.has_current[K - 1] != 0.0:  # If not first point of a coil
-            factor1 = 1.0 / (R2 * (R1 + R2) + scalar_product)
-            factor2 = (
-                -(R1 + R2) * factor1 / R1 / R2 * currents[coils.coil_number[K] - 1]
-            )
-            cross_product = np.cross(R2_vector, L)  # r-r'[k] x L
-
-            B = np.add(np.dot(cross_product, factor2), B)
-
-        R1 = R2
-
-    BR = B[0] * cosf + B[1] * sinf
-    Bphi = B[1] * cosf - B[0] * sinf
-    BZ = B[2]
-
-    return BR, Bphi, BZ
-
+@nb.njit
 def calc_biotsavart_vectorized(grid_coordinates, coils, currents):
     """
     Calculate the magnetic field components by 
@@ -175,7 +126,7 @@ def calc_biotsavart_vectorized(grid_coordinates, coils, currents):
     Y_grid=RI*sinf  #cartesian coordinates of grid point
     X_grid=RI*cosf
     Z_grid=ZI
-    grid_point=[X_grid,Y_grid,Z_grid]
+    grid_point=np.array([X_grid,Y_grid,Z_grid])
 
 
     coil_points=np.zeros((coils.n_nodes, 3))
@@ -184,13 +135,15 @@ def calc_biotsavart_vectorized(grid_coordinates, coils, currents):
     coil_points[:,2]=coils.Z
     R_vectors=np.subtract(grid_point,coil_points)
 
-    R = np.linalg.norm(R_vectors, axis=1)
+    #R = np.linalg.norm(R_vectors, axis=1)
+    R = np.sqrt(R_vectors[:,0]**2 + R_vectors[:,1]**2 + R_vectors[:,1]**2)
 
     L_vectors = np.subtract(coil_points[1:], coil_points[:-1])
 
-    scalar_products = np.einsum('ij,ij->i', L_vectors, R_vectors[1:])
+    #scalar_products = np.einsum('ij,ij->i', L_vectors, R_vectors[1:])
+    scalar_products = L_vectors[:,0]*R_vectors[1:][:,0] + L_vectors[:,1]*R_vectors[1:][:,1] + L_vectors[:,2]*R_vectors[1:][:,2]
 
-    current_list = [currents[i-1] for i in coils.coil_number[1:]]
+    current_list = np.array([currents[i-1] for i in coils.coil_number[1:]])
 
     factor1_list=1/(R[1:]*(R[:-1]+R[1:])+scalar_products)
     factor2_list=-(R[:-1]+R[1:])*factor1_list/R[:-1]/R[1:]*coils.has_current[:-1]*current_list
@@ -219,7 +172,7 @@ def read_coils(coil_file):
     Y = data[:, 1]
     Z = data[:, 2]
     has_current = data[:, 3]
-    coil_number = [int(d) for d in data[:, 4]]
+    coil_number = data[:, 4].astype(int)
 
     last_nodes_idxs = np.where(np.diff(coil_number) != 0)[0]
 
@@ -286,6 +239,33 @@ def get_field_on_grid(grid, coils, currents, integrator):
         for p in grid.phi:
             for z in grid.Z:
                 x = [r, p, z]
+                BR[i], Bphi[i], BZ[i] = integrator(x, coils, currents)
+                i += 1
+    return BR, Bphi, BZ
+
+@nb.njit(parallel=True)
+def get_field_on_grid_numba_parallel(grid, coils, currents, integrator):
+    """Calculate the magnetic field components for the discretized grid .
+
+    Args:
+        grid (grid object): Contains the parameters for the discretized grid.
+        coils (coils object): coil data
+        currents (array[float], shape=(n_coils, )): Currents of each coil. n_coils is the total number of coils.
+
+    Returns:
+        BR (array[float], shape=(n_points, )): Radial component fo the magnetic field. n_points is the total number of grid points.
+        Bphi (array[float], shape=(n_points, )): Toroidal component of the magnetic field. n_points is the total number of grid points.
+        BZ (array[float], shape=(n_points, )): Axial component of the magnetic field. n_points is the total number of grid points.
+    """
+    n_points = grid.nR * grid.nphi * grid.nZ
+    BR = np.empty((n_points))
+    Bphi = np.empty((n_points))
+    BZ = np.empty((n_points))
+    i = 0
+    for j in nb.prange(grid.nR):
+        for k in nb.prange(grid.nphi):
+            for l in nb.prange(grid.nZ):
+                x = [grid.R[j], grid.phi[k], grid.Z[l]]
                 BR[i], Bphi[i], BZ[i] = integrator(x, coils, currents)
                 i += 1
     return BR, Bphi, BZ
