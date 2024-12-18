@@ -126,7 +126,7 @@ def calc_biotsavart_vectorized(grid_coordinates, coils, currents):
     Y_grid=RI*sinf  #cartesian coordinates of grid point
     X_grid=RI*cosf
     Z_grid=ZI
-    grid_point=[X_grid,Y_grid,Z_grid]
+    grid_point=np.array([X_grid,Y_grid,Z_grid])
 
 
     coil_points = np.zeros((coils.n_nodes, 3))
