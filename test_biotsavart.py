@@ -1,13 +1,28 @@
 import pytest
 import matplotlib.pyplot as plt
 import numpy as np
-from biotsavart import calc_biotsavart, calc_biotsavart_vectorized
+from biotsavart import (
+    calc_biotsavart,
+    calc_biotsavart_vectorized,
+    get_field_on_grid,
+    get_field_on_grid_numba_parallel,
+)
 
 
 @pytest.mark.parametrize(
-    "R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator",
+    "R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator, grid_iterator",
     [
-        [4, 2, 2, 32, 4, 3, 64, calc_biotsavart],
+        [
+            4,
+            2,
+            2,
+            32,
+            4,
+            3,
+            64,
+            calc_biotsavart_vectorized,
+            get_field_on_grid_numba_parallel,
+        ],
     ],
 )
 def test_biotsavart(R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator):

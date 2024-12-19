@@ -1,4 +1,8 @@
-from biotsavart import calc_biotsavart, make_field_file_from_coils
+from biotsavart import (
+    calc_biotsavart,
+    make_field_file_from_coils,
+    get_field_on_grid_numba_parallel,
+)
 import numpy as np
 import os
 from PIL import Image, ImageDraw, ImageFont
@@ -188,6 +192,7 @@ def test_field_against_golden_record(backup_and_cleanup):
         current_file_gold_rec,
         field_file,
         calc_biotsavart,
+        get_field_on_grid_numba_parallel,
         field_periodicity,
     )
 

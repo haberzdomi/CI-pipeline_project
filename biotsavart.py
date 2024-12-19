@@ -6,12 +6,17 @@ from grid import grid
 import argparse
 import numba as nb
 
-@nb.experimental.jitclass([('X', nb.float64[:]), 
-                           ('Y', nb.float64[:]), 
-                           ('Z', nb.float64[:]), 
-                           ('has_current', nb.float64[:]), 
-                           ('coil_number', nb.int32[:]),
-                           ('n_nodes', nb.int32)])
+
+@nb.experimental.jitclass(
+    [
+        ("X", nb.float64[:]),
+        ("Y", nb.float64[:]),
+        ("Z", nb.float64[:]),
+        ("has_current", nb.float64[:]),
+        ("coil_number", nb.int32[:]),
+        ("n_nodes", nb.int32),
+    ]
+)
 class coils:
     X: np.ndarray
     Y: np.ndarray
@@ -19,6 +24,7 @@ class coils:
     has_current: np.ndarray
     coil_number: np.ndarray
     n_nodes: int
+
     def __init__(self, X, Y, Z, has_current, coil_number, n_nodes):
         """Object to store the coil data.
 
@@ -38,17 +44,16 @@ class coils:
         self.n_nodes = n_nodes
 
 
-
 @nb.njit
 def calc_biotsavart(grid_coordinates, coils, currents):
     """
     Calculate the magnetic field components by evaluating the Biot-Savart integral for the
-    given coil geometry and currents.
+    given coil geometry and currents. This function loops over all coil points.
 
     Args:
-        grid_coordinates (array[float], shape=(3)): cylindrical coordinates of the grid point
+        grid_coordinates (array[float], shape=(3, )): cylindrical coordinates of the grid point
         coils (coils object): coil data
-        currents (List[float], length=n_coils): Currents of each coil. n_coils is the total number of coils
+        currents (array[float],shape=(n_coils, )): Currents of each coil. n_coils is the total number of coils
     Returns:
         BR (float): Radial component fo the magnetic field
         Bphi (float): Toroidal component of the magnetic field
@@ -65,7 +70,7 @@ def calc_biotsavart(grid_coordinates, coils, currents):
     Z_grid = grid_coordinates[2]
     grid_point = np.array([X_grid, Y_grid, Z_grid])
 
-    B = np.array([0., 0., 0.])
+    B = np.array([0.0, 0.0, 0.0])
 
     coil_point = np.array([coils.X[0], coils.Y[0], coils.Z[0]])
 
@@ -88,10 +93,12 @@ def calc_biotsavart(grid_coordinates, coils, currents):
 
         if coils.has_current[K - 1] != 0.0:  # If not first point of a coil
             factor1 = 1.0 / (R2 * (R1 + R2) + scalar_product)
-            factor2 = (-(R1 + R2) * factor1 / R1 / R2 * currents[coils.coil_number[K] - 1])
+            factor2 = (
+                -(R1 + R2) * factor1 / R1 / R2 * currents[coils.coil_number[K] - 1]
+            )
             cross_product = np.cross(R2_vector, L)  # r-r'[k] x L
 
-            B = cross_product* factor2+ B
+            B = cross_product * factor2 + B
 
         R1 = R2
 
@@ -105,8 +112,8 @@ def calc_biotsavart(grid_coordinates, coils, currents):
 @nb.njit
 def calc_biotsavart_vectorized(grid_coordinates, coils, currents):
     """
-    Calculate the magnetic field components by
-    evaluating the Biot-Savart integral.
+    Calculate the magnetic field components by evaluating the Biot-Savart integral for the given
+    coil geometry and currents. This function uses vectorized operations to deal with the coil points.
 
     Args:
         grid_coordinates (array[float], shape=(3)): cylindrical coordinates of the grid point
@@ -118,16 +125,15 @@ def calc_biotsavart_vectorized(grid_coordinates, coils, currents):
         BZI (float): axial component of the magnetic field
     """
 
-    RI=grid_coordinates[0]
-    fI=grid_coordinates[1]
-    ZI=grid_coordinates[2]
-    cosf=np.cos(fI)
-    sinf=np.sin(fI)
-    Y_grid=RI*sinf  #cartesian coordinates of grid point
-    X_grid=RI*cosf
-    Z_grid=ZI
-    grid_point=np.array([X_grid,Y_grid,Z_grid])
-
+    RI = grid_coordinates[0]
+    fI = grid_coordinates[1]
+    ZI = grid_coordinates[2]
+    cosf = np.cos(fI)
+    sinf = np.sin(fI)
+    Y_grid = RI * sinf
+    X_grid = RI * cosf
+    Z_grid = ZI
+    grid_point = np.array([X_grid, Y_grid, Z_grid])
 
     coil_points = np.zeros((coils.n_nodes, 3))
     coil_points[:, 0] = coils.X
@@ -135,28 +141,30 @@ def calc_biotsavart_vectorized(grid_coordinates, coils, currents):
     coil_points[:, 2] = coils.Z
     R_vectors = np.subtract(grid_point, coil_points)
 
-    #R = np.linalg.norm(R_vectors, axis=1)
-    R = np.sqrt(R_vectors[:,0]**2 + R_vectors[:,1]**2 + R_vectors[:,1]**2)
+    R = np.sqrt(R_vectors[:, 0] ** 2 + R_vectors[:, 1] ** 2 + R_vectors[:, 2] ** 2)
 
     L_vectors = np.subtract(coil_points[1:], coil_points[:-1])
 
-    #scalar_products = np.einsum('ij,ij->i', L_vectors, R_vectors[1:])
-    scalar_products = L_vectors[:,0]*R_vectors[1:][:,0] + L_vectors[:,1]*R_vectors[1:][:,1] + L_vectors[:,2]*R_vectors[1:][:,2]
+    scalar_products = (
+        L_vectors[:, 0] * R_vectors[1:][:, 0]
+        + L_vectors[:, 1] * R_vectors[1:][:, 1]
+        + L_vectors[:, 2] * R_vectors[1:][:, 2]
+    )
 
-    current_list = np.array([currents[i-1] for i in coils.coil_number[1:]])
+    current_array = np.array([currents[i - 1] for i in coils.coil_number[1:]])
 
-    factor1_list = 1 / (R[1:] * (R[:-1] + R[1:]) + scalar_products)
-    factor2_list = (
+    factor1_array = 1 / (R[1:] * (R[:-1] + R[1:]) + scalar_products)
+    factor2_array = (
         -(R[:-1] + R[1:])
-        * factor1_list
+        * factor1_array
         / R[:-1]
         / R[1:]
         * coils.has_current[:-1]
-        * current_list
+        * current_array
     )
     cross_products = np.cross(R_vectors[1:], L_vectors)
 
-    B = np.sum(cross_products * factor2_list[:, np.newaxis], axis=0)
+    B = np.sum(cross_products * factor2_array[:, np.newaxis], axis=0)
 
     B_R = B[0] * cosf + B[1] * sinf
     B_phi = B[1] * cosf - B[0] * sinf
@@ -200,7 +208,7 @@ def read_currents(current_file):
 
     """
     with open(current_file, "r") as f:
-        currents = [float(data) for data in f.readline().split()]
+        currents = np.array([float(data) for data in f.readline().split()])
     return currents
 
 
@@ -225,7 +233,7 @@ def read_grid(grid_file, field_periodicity=1):
 
 
 def get_field_on_grid(grid, coils, currents, integrator):
-    """Calculate the magnetic field components for the discretized grid .
+    """Loop over the discretized grid points and calculate the magnetic field components.
 
     Args:
         grid (grid object): Contains the parameters for the discretized grid.
@@ -245,14 +253,15 @@ def get_field_on_grid(grid, coils, currents, integrator):
     for r in grid.R:
         for p in grid.phi:
             for z in grid.Z:
-                x = [r, p, z]
+                x = np.array([r, p, z])
                 BR[i], Bphi[i], BZ[i] = integrator(x, coils, currents)
                 i += 1
     return BR, Bphi, BZ
 
+
 @nb.njit(parallel=True)
 def get_field_on_grid_numba_parallel(grid, coils, currents, integrator):
-    """Calculate the magnetic field components for the discretized grid .
+    """Loop parallelized over the discretized grid points and calculate the magnetic field components.
 
     Args:
         grid (grid object): Contains the parameters for the discretized grid.
@@ -268,13 +277,14 @@ def get_field_on_grid_numba_parallel(grid, coils, currents, integrator):
     BR = np.empty((n_points))
     Bphi = np.empty((n_points))
     BZ = np.empty((n_points))
-    i = 0
+
     for j in nb.prange(grid.nR):
         for k in nb.prange(grid.nphi):
             for l in nb.prange(grid.nZ):
-                x = [grid.R[j], grid.phi[k], grid.Z[l]]
+                x = np.array([grid.R[j], grid.phi[k], grid.Z[l]])
+                i = j * grid.nphi * grid.nZ + k * grid.nZ + l
                 BR[i], Bphi[i], BZ[i] = integrator(x, coils, currents)
-                i += 1
+
     return BR, Bphi, BZ
 
 
@@ -306,11 +316,12 @@ def make_field_file_from_coils(
     current_file="current_file",
     field_file="field_file",
     integrator=calc_biotsavart,
+    grid_iterator=get_field_on_grid_numba_parallel,
     field_periodicity=1,
 ):
-    """Read the input data from grid_file, coil_file and current_file.
-    Then calculate the magnetic field components for the discretized grid given from the input files
-    and write the results to the output file field_file.
+    """Read the input data from grid_file, coil_file and current_file. Then calculate the
+    magnetic field components for the discretized grid given from the input files and write
+    the results to the output file field_file. Print the time it took to calculate the field.
 
     Args:
         grid_file (str, optional): Input file containing the parameters for a discretized grid. Defaults to "grid_file".
@@ -318,6 +329,7 @@ def make_field_file_from_coils(
         current_file (str, optional): Input file containing the currents of each coil. Defaults to "current_file".
         field_file (str, optional): Output file into which the magnetic field components and calculation parameters are written to. Defaults to "field_file".
         integrator (function, optional): Function to evaluate the Biot-Savart integral and calculate the magnetic field components. Defaults to calc_biotsavart.
+        grid_iterator (function, optional): Function which iterates over the grid points onto which the magnetic field is calculated. Defaults to get_field_on_grid_numba_parallel.
         field_periodicity (int, optional): Periodicity of the field in phi direction used for Tokamaks. Defaults to 1.
     """
     coils = read_coils(coil_file)
@@ -326,7 +338,7 @@ def make_field_file_from_coils(
 
     grid = read_grid(grid_file, field_periodicity)
 
-    BR, Bphi, BZ = get_field_on_grid(grid, coils, currents, integrator)
+    BR, Bphi, BZ = grid_iterator(grid, coils, currents, integrator)
 
     write_field_to_file(field_file, grid, BR, Bphi, BZ, field_periodicity)
 
@@ -360,9 +372,16 @@ if __name__ == "__main__":
     parser.add_argument(
         "--integrator",
         type=str,
-        default="calc_biotsavart",
+        default="calc_biotsavart_vectorized",
         choices=["calc_biotsavart", "calc_biotsavart_vectorized"],
         help="Name of the function to evaluate the Biot-Savart integral and calculate the magnetic field components",
+    )
+    parser.add_argument(
+        "--grid_iterator",
+        type=str,
+        default="get_field_on_grid_numba_parallel",
+        choices=["get_field_on_grid", "get_field_on_grid_numba_parallel"],
+        help="Name of the function which iterates over the grid points onto which the magnetic field is calculated.",
     )
     parser.add_argument(
         "--field_periodicity",
@@ -378,5 +397,6 @@ if __name__ == "__main__":
         args.current_file,
         args.field_file,
         eval(args.integrator),
+        eval(args.grid_iterator),
         args.field_periodicity,
     )
