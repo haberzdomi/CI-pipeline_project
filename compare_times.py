@@ -21,7 +21,7 @@ def get_runtimes(grid, coils, currents, grid_iterator):
         )
     )
 
-test_grid=grid(4, 5, 4, 65, 267, 0, 2*np.pi, -154, 154)
+test_grid=grid(20, 20, 20, 65, 267, 0, 2*np.pi, -154, 154)
 coils = read_coils('coil_file')
 currents = read_currents('current_file')
 
