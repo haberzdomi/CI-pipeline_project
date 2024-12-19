@@ -71,6 +71,9 @@ def plot_modes(fname, n_modes, figsize=(8, 4)):
         g.Z_max,
     )
 
+    if g_double.nphi-1 < 2*n_modes:
+        raise ValueError('n_modes is too high. Condition: 2 * n_max <= nphi - 1')
+
     A = get_A_field_modes(g, BR, Bphi, BZ)
 
     # Get logaritmic value of the squared norm of the magnetic field for each mode, i.e. for each subplot k
