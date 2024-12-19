@@ -136,14 +136,15 @@ def calc_biotsavart_vectorized(grid_coordinates, coils, currents):
     R_vectors = np.subtract(grid_point, coil_points)
 
     #R = np.linalg.norm(R_vectors, axis=1)
-    R = np.sqrt(R_vectors[:,0]**2 + R_vectors[:,1]**2 + R_vectors[:,1]**2)
+    R = np.sqrt(R_vectors[:,0]**2 + R_vectors[:,1]**2 + R_vectors[:,2]**2)
 
     L_vectors = np.subtract(coil_points[1:], coil_points[:-1])
 
     #scalar_products = np.einsum('ij,ij->i', L_vectors, R_vectors[1:])
     scalar_products = L_vectors[:,0]*R_vectors[1:][:,0] + L_vectors[:,1]*R_vectors[1:][:,1] + L_vectors[:,2]*R_vectors[1:][:,2]
-
+    
     current_list = np.array([currents[i-1] for i in coils.coil_number[1:]])
+
 
     factor1_list = 1 / (R[1:] * (R[:-1] + R[1:]) + scalar_products)
     factor2_list = (
@@ -200,7 +201,7 @@ def read_currents(current_file):
 
     """
     with open(current_file, "r") as f:
-        currents = [float(data) for data in f.readline().split()]
+        currents = np.array([float(data) for data in f.readline().split()])
     return currents
 
 
@@ -272,9 +273,9 @@ def get_field_on_grid_numba_parallel(grid, coils, currents, integrator):
     for j in nb.prange(grid.nR):
         for k in nb.prange(grid.nphi):
             for l in nb.prange(grid.nZ):
-                x = [grid.R[j], grid.phi[k], grid.Z[l]]
+                x = np.array([grid.R[j], grid.phi[k], grid.Z[l]])
+                i = j*grid.nphi*grid.nZ + k*grid.nZ + l
                 BR[i], Bphi[i], BZ[i] = integrator(x, coils, currents)
-                i += 1
     return BR, Bphi, BZ
 
 
