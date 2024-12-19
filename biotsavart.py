@@ -321,11 +321,36 @@ def make_field_file_from_coils(
         integrator (function, optional): Function to evaluate the Biot-Savart integral and calculate the magnetic field components. Defaults to calc_biotsavart.
         field_periodicity (int, optional): Periodicity of the field in phi direction used for Tokamaks. Defaults to 1.
     """
+
+    try:
+        open(coil_file).close
+    except:
+        print(f'{coil_file} not found')
+    try:
+        open(current_file).close
+    except:
+        print(f'{current_file} not found')
+    try:
+        open(grid_file).close
+    except:
+        print(f'{grid_file} not found')
+
+
+
     coils = read_coils(coil_file)
 
     currents = read_currents(current_file)
 
+    if coils.coil_number[-1] != len(currents):
+       raise StopIteration('Number of coils needs to be the same as the number of currents') 
+
     grid = read_grid(grid_file, field_periodicity)
+    if grid.R_min <= 0 or grid.R_max <= 0:
+        raise ValueError('Radius has to be positive')
+    if grid.R_min >= grid.R_max:
+        raise ValueError('R_min must be lower than R_max')
+    if grid.Z_min >= grid.Z_max:
+        raise ValueError('Z_min must be lower than Z_max')
 
     BR, Bphi, BZ = get_field_on_grid(grid, coils, currents, integrator)
 
