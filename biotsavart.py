@@ -5,6 +5,7 @@ import numpy as np
 from grid import grid
 import argparse
 import numba as nb
+from timeit import default_timer
 
 
 @nb.experimental.jitclass(
@@ -338,7 +339,9 @@ def make_field_file_from_coils(
 
     grid = read_grid(grid_file, field_periodicity)
 
+    start = default_timer()
     BR, Bphi, BZ = grid_iterator(grid, coils, currents, integrator)
+    print(f"Field calculation took: {default_timer() - start} s")
 
     write_field_to_file(field_file, grid, BR, Bphi, BZ, field_periodicity)
 
