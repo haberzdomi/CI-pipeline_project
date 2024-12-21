@@ -57,10 +57,14 @@ def get_runtimes(grid, coils, currents):
     return time_seq_loop, time_seq_vec, time_parallel_loop, time_parallel_vec
 
 
-test_grid = grid(6, 16, 12, 65, 267, 0, 2 * np.pi, -154, 154)
+test_grid = grid(12, 32, 24, 75, 267, 0, 2 * np.pi, -154, 154)
 coils = read_coils("coil_file")
 currents = read_currents("current_file")
 
 times = get_runtimes(test_grid, coils, currents)
 
-## For larger grid sizes like test_grid, the vectorized versions are around 100 times faster.
+# For the above test_grid (large grid), the following times were measured:
+# Sequential loop time:       79.1 s
+# Sequential vectorized time: 11.6 s
+# Parallel loop time:         19.6 s
+# Parallel vectorized time:   10.1 s <-- fastest
