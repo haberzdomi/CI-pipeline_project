@@ -19,7 +19,7 @@ def BZ_formula(z, R, I):
     return I * R**2 * 2 * np.pi / (R**2 + z**2) ** (3 / 2)
 
 
-def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator):
+def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator, grid_iterator):
     """Use biotsavart.py to calculate the magnetic field of a circular current loop
 
     Args:
@@ -28,7 +28,8 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator):
         R_0 (float): Radius of the loop
         I_c (float): current flowing through the loop
         nseg (int): the number of segments in the discretisation of the loop
-        integrator (function, optional): Function to evaluate the Biot-Savart integral and calculate the magnetic field components. Defaults to calc_biotsavart.
+        integrator (function, optional): Function to evaluate the Biot-Savart integral and calculate the magnetic field components.
+        grid_iterator (function, optional): Function which iterates over the grid points onto which the magnetic field is calculated.
 
     Returns:
         Z (array[float], shape=(nZ, )): the array of equidistant Z coordinates of the computational grid
@@ -63,7 +64,13 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator):
 
     # Run the calculation
     make_field_file_from_coils(
-        "test_grid_file", "test_coil_file", "test_current_file", "test_field_file", integrator, 1
+        "test_grid_file",
+        "test_coil_file",
+        "test_current_file",
+        "test_field_file",
+        integrator,
+        grid_iterator,
+        1,
     )
 
     # Process output data
