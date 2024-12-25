@@ -94,37 +94,46 @@ def circular_current(R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator, grid_itera
 
 
 def fourier_analysis(n_max):
-    """Calculate the first 'n_max' modes of the magnetic field on the radial grid R via handwritten discrete fourier transform
-    using field_c and via numpy.fft.fft. The input parameters and magnetic field components are read from field_file.
+    """Calculate the first 'n_max' modes of the magnetic field on the radial grid R via
+    numpy.fft.fft used in get_A_field_modes and via a handwritten discrete fourier transformation.
+    The input parameters and magnetic field components are read from field_file.
 
     Args:
         n_max (int): Highest mode number up to which the of the magnetic field is calculated.
 
     Returns:
         R (array[float], shape=(nR,)): Radial grid for which the magentic field modes are calculated.
-        BnR (array[complex float], shape=(n_max,nR)): R-component of the n'th mode of the magnetic field calculated
-                                                      by field_c using a handwritten fourier transform.
-        BnR_fft (array[complex float], shape=(n_max,nR)): R-component of the n'th mode of the magnetic field calculated
-                                                      by numpy.fft.fft using fast fourier transform.
+        BnR_hand_written (array[complex float], shape=(n_max,nR)): R-component of the n'th mode of the magnetic field calculated
+                                                                   by a handwritten fourier transformation method.
+        BnR_fft (array[complex float], shape=(n_max,nR)): R-component of the n'th mode of the magnetic field calculated using
+                                                          numpy.fft.fft (fast fourier transformation method).
     """
     # Get grid and magnetic field components from the calculation output field_file
     g, BR, Bphi, BZ = read_field("field_file")
 
     # Calculate the first 'n_max' modes of the magnetic field on the radial grid ...
 
-    # ... via the handwritten fourier transform in field_c
+    # ... via the method numpy.fft.fft used in get_A_field_modes.
     A = get_A_field_modes(g, BR, Bphi, BZ)
-    BnR = np.empty((n_max, g.nR), dtype=complex)
+    BnR_fft = np.empty((n_max, g.nR), dtype=complex)
     for k in range(n_max):
         # n=k+1 because range starts from 0 but n=1 is the first mode.
         # Fix Z to the middle of the axial grid
-        BnR[k], Bnphi, BnZ = calc_B_field_modes(g.R, g.Z[g.nZ // 2], k + 1, A)
+        BnR_fft[k], Bnphi, BnZ = calc_B_field_modes(g.R, g.Z[g.nZ // 2], k + 1, A)
 
-    # ... via the method numpy.fft.fft.
-    BnR_fft = np.empty((n_max, g.nR))
-    # The fourier transform implemented in field_c is "forward".
-    # phi goes from 0 to 2*pi therefore the end is excluded.
-    # numpy stores the components such that the first mode is on index 1 and the higher order modes follow on the next indices.
-    BnR_fft = np.fft.fft(BR[:, :-1, g.nZ // 2], norm="forward")[:, 1 : n_max + 1]
-    BnR_fft = BnR_fft.T  # Change to the same shape as BnR.
-    return g.R, BnR, BnR_fft
+    # ... via a handwritten fourier transformation method.
+    # The fourier transform implemented in get_A_field_modes is "forward".
+    BnR_hand_written = np.empty((n_max, g.nR), dtype=complex)
+    for k in range(n_max):
+        n = k + 1  # because range starts from 0 but n=1 is the first mode.
+        # Calculate the fourier coefficients for the n'th mode.
+        fourier_coefs = np.exp(-1j * n * np.linspace(0, 2 * np.pi, g.nphi)) / (
+            g.nphi - 1
+        )
+        # Calculate the n'th mode of the radial component of the magnetic field.
+        kZ = g.nZ // 2  # Fix Z to the middle of the axial grid
+        for kR in range(g.nR):
+            # phi goes from 0 to 2*pi therefore the end is excluded.
+            BnR_hand_written[k, kR] = sum(BR[kR, :-1, kZ] * fourier_coefs[:-1])
+
+    return g.R, BnR_hand_written, BnR_fft

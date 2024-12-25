@@ -1,4 +1,4 @@
-from numpy import atleast_1d, empty, exp, linspace, newaxis, pi, squeeze, sum
+import numpy as np
 from scipy.interpolate import RectBivariateSpline
 
 
@@ -23,16 +23,16 @@ class A_splines:
         self.AnZ_Im = [None] * n
 
 
-def get_A_field_modes(grid, BnR, Bnphi, BnZ):
+def get_A_field_modes(grid, BR, Bphi, BZ):
     """Calculate the first n_max modes of the R- and Z-components of the vector potential using fourier transformation and B=rot(A).
     Perform a bivariate spline approximation to evaluate them on the descretized k-space points.
 
     Args:
         n_max (int): highest mode number to be calculated
         grid (grid_parameters): Object containing the cylindrical 3D-grid and its parameters.
-        BnR (array[float], shape=(nR, nphi, nZ)): R-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
-        Bnphi (array[float], shape=(nR, nphi, nZ)): phi-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
-        BnZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
+        BR (array[float], shape=(nR, nphi, nZ)): R-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
+        Bphi (array[float], shape=(nR, nphi, nZ)): phi-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
+        BZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
     Returns:
         A (A_splines): Object containing the spline functions for the first n modes of the real and imaginary parts of the radial and axial vector potential components.
     """
@@ -41,31 +41,29 @@ def get_A_field_modes(grid, BnR, Bnphi, BnZ):
     # because the last data point in phi-direction is the same as the first one.
     n_max = int((grid.nphi - 1) / 2)
 
+    # A_factor comes from B = rot(A).
+
+    A_factor = (1j / np.arange(1, n_max + 1)[:, np.newaxis] * grid.R)[:, :, np.newaxis]
+
+    # Get first n_max modes of the radial component of the vector potential.
+    BnR = np.fft.fft(BZ[:, :-1, :], axis=1, norm="forward")
+    BnR = np.swapaxes(BnR, 0, 1)[1 : n_max + 1]
+    AnR = A_factor * BnR
+
+    # Get first n_max modes of the axial component of the vector potential.
+    BnZ = np.fft.fft(BR[:, :-1, :], axis=1, norm="forward")
+    BnZ = np.swapaxes(BnZ, 0, 1)[1 : n_max + 1]
+    AnZ = -A_factor * BnZ
+
+    # Interpolation via bivariate spline approximation.
     A = A_splines(n_max)
-
-    AnR = empty((grid.nR, grid.nZ), dtype=complex)
-    AnZ = empty((grid.nR, grid.nZ), dtype=complex)
-
-    # Get first n_max modes of the vector potential
-    for n in range(1, n_max + 1):
-        fourier_coef = exp(-1j * n * linspace(0, 2 * pi, grid.nphi)) / (grid.nphi - 1)
-
-        # Calculate the n'th mode of the radial and axial components of
-        # the vector potential using fourier transformation and B=rot(A).
-        for kR in range(grid.nR):
-            for kZ in range(grid.nZ):
-                AnR[kR, kZ] = (
-                    1j / n * grid.R[kR] * sum(BnZ[kR, :-1, kZ] * fourier_coef[:-1])
-                )
-                AnZ[kR, kZ] = (
-                    -1j / n * grid.R[kR] * sum(BnR[kR, :-1, kZ] * fourier_coef[:-1])
-                )
-        # Interpolation via bivariate spline approximation. The data values (3rd arg) is
-        # defined on the grid (1st and 2nd arg). kx, ky are the degrees of the bivariate spline.
-        A.AnR_Re[n - 1] = RectBivariateSpline(grid.R, grid.Z, AnR.real, kx=5, ky=5)
-        A.AnR_Im[n - 1] = RectBivariateSpline(grid.R, grid.Z, AnR.imag, kx=5, ky=5)
-        A.AnZ_Re[n - 1] = RectBivariateSpline(grid.R, grid.Z, AnZ.real, kx=5, ky=5)
-        A.AnZ_Im[n - 1] = RectBivariateSpline(grid.R, grid.Z, AnZ.imag, kx=5, ky=5)
+    for k in range(n_max):
+        # The data values (3rd arg) are defined on the grid (1st and 2nd arg).
+        # kx, ky are the degrees of the bivariate spline.
+        A.AnR_Re[k] = RectBivariateSpline(grid.R, grid.Z, AnR[k].real, kx=5, ky=5)
+        A.AnR_Im[k] = RectBivariateSpline(grid.R, grid.Z, AnR[k].imag, kx=5, ky=5)
+        A.AnZ_Re[k] = RectBivariateSpline(grid.R, grid.Z, AnZ[k].real, kx=5, ky=5)
+        A.AnZ_Im[k] = RectBivariateSpline(grid.R, grid.Z, AnZ[k].imag, kx=5, ky=5)
     return A
 
 
@@ -92,9 +90,10 @@ def calc_B_field_modes(R, Z, n, A):
     AnZ = A.AnZ_Re[n - 1](R, Z) + 1j * A.AnZ_Im[n - 1](R, Z)
     dAnR_dZ = A.AnR_Re[n - 1](R, Z, dy=1) + 1j * A.AnR_Im[n - 1](R, Z, dy=1)
     dAnZ_dR = A.AnZ_Re[n - 1](R, Z, dx=1) + 1j * A.AnZ_Im[n - 1](R, Z, dx=1)
-    # Calculate the azimuthal component such that div(B) = 0
-    BnR = 1j * n * AnZ / R[:, newaxis]
-    Bnphi = dAnR_dZ - dAnZ_dR
-    BnZ = -1j * n * AnR / R[:, newaxis]
+
+    # Get the magnetic field components from the vector potential components
+    BnR = 1j * n * AnZ / R[:, np.newaxis]
+    Bnphi = dAnR_dZ - dAnZ_dR  # Calculate the azimuthal component such that div(B) = 0
+    BnZ = -1j * n * AnR / R[:, np.newaxis]
     # Remove 1D axis before returning
-    return squeeze(BnR), squeeze(Bnphi), squeeze(BnZ)
+    return np.squeeze(BnR), np.squeeze(Bnphi), np.squeeze(BnZ)
