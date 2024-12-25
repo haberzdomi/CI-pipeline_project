@@ -1,31 +1,70 @@
 import timeit
 from grid import grid
 import numpy as np
-from biotsavart import read_coils, read_currents, get_field_on_grid, get_field_on_grid_numba_parallel, calc_biotsavart, calc_biotsavart_vectorized
+from biotsavart import (
+    read_coils,
+    read_currents,
+    get_field_on_grid,
+    get_field_on_grid_numba_parallel,
+    calc_biotsavart,
+    calc_biotsavart_vectorized,
+)
 
-def get_runtimes(grid, coils, currents, grid_iterator):
-    print("For loop:")
-    print(
-        timeit.timeit(
-            stmt=lambda: grid_iterator(grid, coils, currents, calc_biotsavart),
-            setup="from biotsavart import calc_biotsavart, "+grid_iterator.__name__+", coils; from grid import grid",
-            number=1
-        )
+
+def get_runtimes(grid, coils, currents):
+    time_seq_loop = timeit.timeit(
+        stmt=lambda: get_field_on_grid(grid, coils, currents, calc_biotsavart),
+        setup="from biotsavart import calc_biotsavart, "
+        + get_field_on_grid.__name__
+        + ", coils; from grid import grid",
+        number=1,
     )
-    print("Vectorized:")
-    print(
-        timeit.timeit(
-            stmt=lambda: grid_iterator(grid, coils, currents, calc_biotsavart_vectorized),
-            setup="from biotsavart import calc_biotsavart_vectorized, "+grid_iterator.__name__+", coils; from grid import grid",
-            number=1
-        )
+    print(f"Sequential loop time: {time_seq_loop} s")
+
+    time_seq_vec = timeit.timeit(
+        stmt=lambda: get_field_on_grid(
+            grid, coils, currents, calc_biotsavart_vectorized
+        ),
+        setup="from biotsavart import calc_biotsavart_vectorized, "
+        + get_field_on_grid.__name__
+        + ", coils; from grid import grid",
+        number=1,
     )
+    print(f"Sequential vectorized time: {time_seq_vec} s")
 
-test_grid=grid(20, 20, 20, 65, 267, 0, 2*np.pi, -154, 154)
-coils = read_coils('coil_file')
-currents = read_currents('current_file')
+    time_parallel_loop = timeit.timeit(
+        stmt=lambda: get_field_on_grid_numba_parallel(
+            grid, coils, currents, calc_biotsavart
+        ),
+        setup="from biotsavart import calc_biotsavart, "
+        + get_field_on_grid_numba_parallel.__name__
+        + ", coils; from grid import grid",
+        number=1,
+    )
+    print(f"Parallel loop time: {time_parallel_loop} s")
 
-get_runtimes(test_grid, coils, currents, get_field_on_grid)
-get_runtimes(test_grid, coils, currents, get_field_on_grid_numba_parallel)
+    time_parallel_vec = timeit.timeit(
+        stmt=lambda: get_field_on_grid_numba_parallel(
+            grid, coils, currents, calc_biotsavart_vectorized
+        ),
+        setup="from biotsavart import calc_biotsavart_vectorized, "
+        + get_field_on_grid_numba_parallel.__name__
+        + ", coils; from grid import grid",
+        number=1,
+    )
+    print(f"Parallel vectorized time: {time_parallel_vec} s")
 
-## Vectorized version of calc_biotsavart is around 100 times faster
+    return time_seq_loop, time_seq_vec, time_parallel_loop, time_parallel_vec
+
+
+test_grid = grid(12, 32, 24, 75, 267, 0, 2 * np.pi, -154, 154)
+coils = read_coils("coil_file")
+currents = read_currents("current_file")
+
+times = get_runtimes(test_grid, coils, currents)
+
+# For the above test_grid (large grid), the following times were measured:
+# Sequential loop time:       79.1 s
+# Sequential vectorized time: 11.6 s
+# Parallel loop time:         19.6 s
+# Parallel vectorized time:   10.1 s <-- fastest

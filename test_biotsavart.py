@@ -1,16 +1,31 @@
 import pytest
 import matplotlib.pyplot as plt
 import numpy as np
-from biotsavart import calc_biotsavart, calc_biotsavart_vectorized
+from biotsavart import (
+    calc_biotsavart,
+    calc_biotsavart_vectorized,
+    get_field_on_grid,
+    get_field_on_grid_numba_parallel,
+)
 
 
 @pytest.mark.parametrize(
-    "R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator",
+    "R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator, grid_iterator",
     [
-        [4, 2, 2, 32, 4, 3, 64, calc_biotsavart],
+        [
+            4,
+            2,
+            2,
+            32,
+            4,
+            3,
+            64,
+            calc_biotsavart_vectorized,
+            get_field_on_grid_numba_parallel,
+        ],
     ],
 )
-def test_biotsavart(R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator):
+def test_biotsavart(R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator, grid_iterator):
     """test the circular_current function to assert, whether the result using biotsavart_asdex is sufficiently
     close to the analytical solution with the example of a circular current loop
 
@@ -21,12 +36,13 @@ def test_biotsavart(R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator):
         I_c (float): current flowing through the loop
         nseg (int): the number of segments in the discretisation of the loop
         integrator (function): Function to evaluate the Biot-Savart integral and calculate the magnetic field components.
+        grid_iterator (function, optional): Function which iterates over the grid points onto which the magnetic field is calculated.
         tol (float): acceptable difference between the analytical result and the output of biotsavart_asdex
     """
     from reference_solutions import circular_current
 
     Z, BZ, BZ_analytic = circular_current(
-        R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator
+        R_max, nR, nphi, nZ, R_0, I_c, nseg, integrator, grid_iterator
     )
     plt.plot(Z, BZ, label="values from biotsavart.py")
     plt.plot(Z, BZ_analytic, label="analytical values")

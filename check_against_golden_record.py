@@ -1,4 +1,8 @@
-from biotsavart import calc_biotsavart, make_field_file_from_coils
+from biotsavart import (
+    calc_biotsavart,
+    make_field_file_from_coils,
+    get_field_on_grid_numba_parallel,
+)
 import numpy as np
 import os
 from PIL import Image, ImageDraw, ImageFont
@@ -54,7 +58,7 @@ def backup_files(files):
 
 
 def cleanup_files(files):
-    """(CAUTION) Delete all files in files.
+    """(CAUTION) Delete all files in input argument list.
 
     Args:
         files (iterable): Paths to files which are deleted.
@@ -100,11 +104,12 @@ def backup_and_cleanup():
         field_file_gold_rec,
         field_modes_gold_rec,
     ) = get_filenames()
-    temp_files = backup_files([field_file, field_modes])
+    protected_files = [field_file, field_modes]
+    temp_files = backup_files(protected_files)
 
     yield field_file, field_modes, grid_file_gold_rec, current_file_gold_rec, coil_file_gold_rec, field_file_gold_rec, field_modes_gold_rec
 
-    cleanup_files([field_modes])
+    cleanup_files(protected_files)
     restore_backups(temp_files)
 
 
@@ -188,6 +193,7 @@ def test_field_against_golden_record(backup_and_cleanup):
         current_file_gold_rec,
         field_file,
         calc_biotsavart,
+        get_field_on_grid_numba_parallel,
         field_periodicity,
     )
 
