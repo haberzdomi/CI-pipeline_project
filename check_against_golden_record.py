@@ -58,7 +58,7 @@ def backup_files(files):
 
 
 def cleanup_files(files):
-    """(CAUTION) Delete all files in files.
+    """(CAUTION) Delete all files in input argument list.
 
     Args:
         files (iterable): Paths to files which are deleted.
@@ -104,11 +104,12 @@ def backup_and_cleanup():
         field_file_gold_rec,
         field_modes_gold_rec,
     ) = get_filenames()
-    temp_files = backup_files([field_file, field_modes])
+    protected_files = [field_file, field_modes]
+    temp_files = backup_files(protected_files)
 
     yield field_file, field_modes, grid_file_gold_rec, current_file_gold_rec, coil_file_gold_rec, field_file_gold_rec, field_modes_gold_rec
 
-    cleanup_files([field_modes])
+    cleanup_files(protected_files)
     restore_backups(temp_files)
 
 
