@@ -1,10 +1,10 @@
 # Dominik Haberz 11916636
 # Clara Rinner 01137166
 #
-import numpy as np
-from grid import grid
 import argparse
+from grid import grid
 import numba as nb
+import numpy as np
 from timeit import default_timer
 
 
@@ -357,11 +357,11 @@ def make_field_file_from_coils(
         )
 
     grid = read_grid(grid_file, field_periodicity)
-    if grid.R_min <= 0 or grid.R_max <= 0:
+    if grid.R_min < 0 or grid.R_max < 0:
         raise ValueError("Radius has to be positive")
-    if grid.R_min >= grid.R_max:
+    if grid.R_min > grid.R_max:
         raise ValueError("R_min must be lower than R_max")
-    if grid.Z_min >= grid.Z_max:
+    if grid.Z_min > grid.Z_max:
         raise ValueError("Z_min must be lower than Z_max")
 
     start = default_timer()
