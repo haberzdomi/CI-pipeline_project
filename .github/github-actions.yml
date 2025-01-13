@@ -1,0 +1,8 @@
+name: Actions after commit
+run-name: Running appropriate tests after committing changes
+on: push
+jobs:
+  test_biotsavart:
+    name: test biotsavart.py
+    steps:
+      -run: python -m pytest test_biotsavart.py
