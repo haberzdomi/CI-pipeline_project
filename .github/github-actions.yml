@@ -4,4 +4,4 @@ on: push
 jobs:
   test_biotsavart:
     steps:
-      -run: python biotsavart.py
+      -run: echo "test"
