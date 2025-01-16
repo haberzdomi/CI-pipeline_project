@@ -113,16 +113,16 @@ def backup_and_cleanup():
     restore_backups(temp_files)
 
 
-def get_head_of_field_file(fname):
+def get_head_of_field_file(field_file):
     """Get the head (=first four lines) of the Biot-Savart field calculation output file.
 
     Args:
-        fname (str): Name of the Biot-Savart field calculation output file
+        field_file (str): File name of the magnetic field calculation output
 
     Returns:
         head (array[float], shape=(4,4)): Values of the first four lines in this file
     """
-    with open(fname, "r") as f:
+    with open(field_file, "r") as f:
         head = [next(f).strip().split(" ") for _ in range(4)]
         head = [np.pad(row, (0, 4 - len(row))) for row in head]
         head = np.array(head).astype(float)

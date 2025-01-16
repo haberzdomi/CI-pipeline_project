@@ -3,6 +3,7 @@
 #
 import argparse
 from grid import grid
+import h5py
 import numba as nb
 import numpy as np
 from timeit import default_timer
@@ -237,7 +238,7 @@ def get_field_on_grid(grid, coils, currents, integrator):
     """Loop over the discretized grid points and calculate the magnetic field components.
 
     Args:
-        grid (grid object): Contains the parameters for the discretized grid.
+        grid (grid object): Object containing the cylindrical 3D-grid and its parameters.
         coils (coils object): coil data
         currents (array[float], shape=(n_coils, )): Currents of each coil. n_coils is the total number of coils.
         integrator (function): Function to evaluate the Biot-Savart integral and calculate the magnetic field components.
@@ -265,7 +266,7 @@ def get_field_on_grid_numba_parallel(grid, coils, currents, integrator):
     """Loop parallelized over the discretized grid points and calculate the magnetic field components.
 
     Args:
-        grid (grid object): Contains the parameters for the discretized grid.
+        grid (grid object): Object containing the cylindrical 3D-grid and its parameters.
         coils (coils object): coil data
         currents (array[float], shape=(n_coils, )): Currents of each coil. n_coils is the total number of coils.
 
@@ -294,7 +295,7 @@ def write_field_to_file(field_file, grid, BR, Bphi, BZ, field_periodicity):
 
     Args:
         field_file (str): Output file into which the magnetic field components and calculation parameters are written to.
-        grid (grid object): Contains the parameters for the discretized grid.
+        grid (grid object): Object containing the cylindrical 3D-grid and its parameters.
         BR (array[float], shape=(n_points, )): Radial component fo the magnetic field. n_points is the total number of grid points.
         Bphi (array[float], shape=(n_points, )): Toroidal component of the magnetic field. n_points is the total number of grid points.
         BZ (array[float], shape=(n_points, )): Axial component of the magnetic field. n_points is the total number of grid points.
@@ -311,11 +312,52 @@ def write_field_to_file(field_file, grid, BR, Bphi, BZ, field_periodicity):
         np.savetxt(f, np.column_stack((BR, Bphi, BZ)))
 
 
+def write_field_hdf5(field_file, grid, BR, Bphi, BZ, field_periodicity):
+    """Write the calculation parameters (grid, field_periodicity) and the magnetic field components to an output file of the format "HDF5".
+
+    Args:
+        field_file (str): Output file into which the magnetic field components and calculation parameters are written to. Must have a HDF5 file extension.
+        grid (grid object): Object containing the cylindrical 3D-grid and its parameters.
+        BR (array[float], shape=(n_points, )): Radial component fo the magnetic field. n_points is the total number of grid points.
+        Bphi (array[float], shape=(n_points, )): Toroidal component of the magnetic field. n_points is the total number of grid points.
+        BZ (array[float], shape=(n_points, )): Axial component of the magnetic field. n_points is the total number of grid points.
+        field_periodicity (int): Periodicity of the field in phi direction used for Tokamaks.
+    """
+    if not field_file.endswith(".h5"):
+        raise ValueError(
+            "Output file must be a HDF5 file when selecting the write_field_hdf5 writer."
+        )
+    f = h5py.File(field_file, "w")
+
+    grid_grp = f.create_group("grid")
+    grid_data = np.array(
+        [grid.nR, grid.nphi, grid.nZ, grid.R_min, grid.R_max, grid.Z_min, grid.Z_max]
+    )
+    grid_grp.create_dataset("input_parameters", (7,), data=grid_data)
+    grid_grp["input_parameters"].attrs[
+        "description"
+    ] = "nR, nphi, nZ, R_min, R_max, Z_min, Z_max"
+    grid_grp["input_parameters"].attrs["units"] = " - , - , - , cm, cm, cm, cm"
+    grid_grp.create_dataset("periodicity", (1,), data=field_periodicity)
+    grid_grp["periodicity"].attrs[
+        "description"
+    ] = "Periodicity of the field in phi direction used for Tokamaks."
+    grid_grp["periodicity"].attrs["units"] = " "
+
+    field_grp = f.create_group("magnetic_field")
+    dimension = (3, grid.nR * grid.nphi * grid.nZ)
+    field_grp.create_dataset("data", dimension, data=[BR, Bphi, BZ])
+    field_grp["data"].attrs["description"] = "BR, Bphi, BZ"
+    field_grp["data"].attrs["units"] = "G, G, G"
+
+    f.close()
+
+
 def make_field_file_from_coils(
     grid_file="grid_file",
     coil_file="coil_file",
     current_file="current_file",
-    field_file="field_file",
+    field_file="field_file.h5",
     integrator=calc_biotsavart,
     grid_iterator=get_field_on_grid_numba_parallel,
     field_periodicity=1,
@@ -328,7 +370,7 @@ def make_field_file_from_coils(
         grid_file (str, optional): Input file containing the parameters for a discretized grid. Defaults to "grid_file".
         coil_file (str, optional): Input file containing the coil geometry. Defaults to "coil_file".
         current_file (str, optional): Input file containing the currents of each coil. Defaults to "current_file".
-        field_file (str, optional): Output file into which the magnetic field components and calculation parameters are written to. Defaults to "field_file".
+        field_file (str, optional): Output file into which the magnetic field components and calculation parameters are written to. Defaults to "field_file.h5".
         integrator (function, optional): Function to evaluate the Biot-Savart integral and calculate the magnetic field components. Defaults to calc_biotsavart.
         grid_iterator (function, optional): Function which iterates over the grid points onto which the magnetic field is calculated. Defaults to get_field_on_grid_numba_parallel.
         field_periodicity (int, optional): Periodicity of the field in phi direction used for Tokamaks. Defaults to 1.
@@ -368,7 +410,10 @@ def make_field_file_from_coils(
     BR, Bphi, BZ = grid_iterator(grid, coils, currents, integrator)
     print(f"Field calculation took: {default_timer() - start} s")
 
-    write_field_to_file(field_file, grid, BR, Bphi, BZ, field_periodicity)
+    if field_file.endswith(".h5"):
+        write_field_hdf5(field_file, grid, BR, Bphi, BZ, field_periodicity)
+    else:
+        write_field_to_file(field_file, grid, BR, Bphi, BZ, field_periodicity)
 
 
 if __name__ == "__main__":
@@ -394,7 +439,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--field_file",
         type=str,
-        default="field_file",
+        default="field_file.h5",
         help="Output file into which the magnetic field components and calculation parameters are written to.",
     )
     parser.add_argument(
