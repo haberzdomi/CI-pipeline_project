@@ -63,13 +63,15 @@ def read_field_hdf5(field_file):
 
     f = h5py.File(field_file, "r")
     nR, nphi, nZ, R_min, R_max, Z_min, Z_max = f["grid/input_parameters"][()]
-
+    
     g = grid(int(nR), int(nphi), int(nZ), R_min, R_max, 0, 2 * np.pi, Z_min, Z_max)
 
     BR, Bphi, BZ = f["magnetic_field/data"][()]
     BR = BR.reshape(g.nR, g.nphi, g.nZ)
     Bphi = Bphi.reshape(g.nR, g.nphi, g.nZ)
     BZ = BZ.reshape(g.nR, g.nphi, g.nZ)
+    
+    f.close()
     return g, BR, Bphi, BZ
 
 
