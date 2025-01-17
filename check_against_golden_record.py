@@ -197,22 +197,22 @@ def test_field_against_golden_record(backup_and_cleanup):
         field_periodicity,
     )
 
-    g_gold_rec, BR_gold_rec, Bphi_gold_rec, BZ_gold_rec = read_field(
+    grid_gold_rec, BR_gold_rec, Bphi_gold_rec, BZ_gold_rec = read_field(
         field_file_gold_rec
     )
     if field_file.endswith(".h5") or field_file.endswith(".hdf5"):
-        g, BR, Bphi, BZ = read_field_hdf5(field_file)
+        grid, BR, Bphi, BZ = read_field_hdf5(field_file)
     elif field_file.endswith(".nc") or field_file.endswith(".cdf"):
-        g, BR, Bphi, BZ = read_field_netcdf(field_file)
+        grid, BR, Bphi, BZ = read_field_netcdf(field_file)
     else:
-        g, BR, Bphi, BZ = read_field(field_file)
+        grid, BR, Bphi, BZ = read_field(field_file)
 
     # Check the grid of the fresh output and the golden record.
-    attribute_names = [attr for attr in dir(g) if not attr.startswith("_")]
+    attribute_names = [attr for attr in dir(grid) if not attr.startswith("_")]
     for attr in attribute_names:
-        getattr(g, attr)
+        getattr(grid, attr)
         assert np.allclose(
-            getattr(g, attr), getattr(g_gold_rec, attr), rtol=1e-10
+            getattr(grid, attr), getattr(grid_gold_rec, attr), rtol=1e-10
         ), f"Grid value '{attr}' do not match golden record"
 
     # Check the magnetic field values of the fresh output and the golden record

@@ -5,7 +5,7 @@ import numba as nb
 @nb.experimental.jitclass(
     [("R", nb.float64[:]), ("phi", nb.float64[:]), ("Z", nb.float64[:])]
 )
-class grid:
+class GRID:
     nR: int
     nphi: int
     nZ: int

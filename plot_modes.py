@@ -1,6 +1,6 @@
 import argparse
 from bdivfree import get_A_field_modes, calc_B_field_modes
-from grid import grid
+from grid import GRID
 import h5py
 from matplotlib.colors import Normalize
 import matplotlib.pyplot as plt
@@ -16,7 +16,7 @@ def read_field(field_file):
         field_file (str): File name of the magnetic field calculation output. If the file does not exist, the file "field_original.dat" is taken.
 
     Returns:
-        grid (grid object): Object containing the cylindrical 3D-grid and its parameters.
+        grid (GRID object): Object containing the cylindrical 3D-grid and its parameters.
         BR (array[float], shape=(nR, nphi, nZ)): R-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
         Bphi (array[float], shape=(nR, nphi, nZ)): phi-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
         BZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
@@ -30,15 +30,15 @@ def read_field(field_file):
         phi_min, phi_max = [float(data) for data in f.readline().split()]
         Z_min, Z_max = [float(data) for data in f.readline().split()]
 
-    g = grid(nR, nphi, nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max)
+    grid = GRID(nR, nphi, nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max)
 
     field_data = np.loadtxt(field_file, skiprows=4)
 
-    BR = field_data[:, 0].reshape(g.nR, g.nphi, g.nZ)
-    Bphi = field_data[:, 1].reshape(g.nR, g.nphi, g.nZ)
-    BZ = field_data[:, 2].reshape(g.nR, g.nphi, g.nZ)
+    BR = field_data[:, 0].reshape(grid.nR, grid.nphi, grid.nZ)
+    Bphi = field_data[:, 1].reshape(grid.nR, grid.nphi, grid.nZ)
+    BZ = field_data[:, 2].reshape(grid.nR, grid.nphi, grid.nZ)
 
-    return g, BR, Bphi, BZ
+    return grid, BR, Bphi, BZ
 
 
 def read_field_hdf5(field_file):
@@ -50,7 +50,7 @@ def read_field_hdf5(field_file):
                           Must have a HDF5 file extension.
 
     Returns:
-        g (grid object): Object containing the cylindrical 3D-grid and its parameters.
+        grid (GRID object): Object containing the cylindrical 3D-grid and its parameters.
         BR (array[float], shape=(nR, nphi, nZ)): R-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
         Bphi (array[float], shape=(nR, nphi, nZ)): phi-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
         BZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
@@ -66,15 +66,15 @@ def read_field_hdf5(field_file):
     f = h5py.File(field_file, "r")
     nR, nphi, nZ, R_min, R_max, Z_min, Z_max = f["grid/input_parameters"][()]
 
-    g = grid(int(nR), int(nphi), int(nZ), R_min, R_max, 0, 2 * np.pi, Z_min, Z_max)
+    grid = GRID(int(nR), int(nphi), int(nZ), R_min, R_max, 0, 2 * np.pi, Z_min, Z_max)
 
     BR, Bphi, BZ = f["magnetic_field/data"][()]
-    BR = BR.reshape(g.nR, g.nphi, g.nZ)
-    Bphi = Bphi.reshape(g.nR, g.nphi, g.nZ)
-    BZ = BZ.reshape(g.nR, g.nphi, g.nZ)
+    BR = BR.reshape(grid.nR, grid.nphi, grid.nZ)
+    Bphi = Bphi.reshape(grid.nR, grid.nphi, grid.nZ)
+    BZ = BZ.reshape(grid.nR, grid.nphi, grid.nZ)
 
     f.close()
-    return g, BR, Bphi, BZ
+    return grid, BR, Bphi, BZ
 
 
 def read_field_netcdf(field_file):
@@ -86,7 +86,7 @@ def read_field_netcdf(field_file):
                           Must have a netCDF4 file extension.
 
     Returns:
-        g (grid object): Object containing the cylindrical 3D-grid and its parameters.
+        grid (GRID object): Object containing the cylindrical 3D-grid and its parameters.
         BR (array[float], shape=(nR, nphi, nZ)): R-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
         Bphi (array[float], shape=(nR, nphi, nZ)): phi-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
         BZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
@@ -110,17 +110,17 @@ def read_field_netcdf(field_file):
     Z_min = float(grid_grp["Z"][0])
     Z_max = float(grid_grp["Z"][-1])
 
-    g = grid(nR, nphi, nZ, R_min, R_max, 0, 2 * np.pi, Z_min, Z_max)
+    grid = GRID(nR, nphi, nZ, R_min, R_max, 0, 2 * np.pi, Z_min, Z_max)
 
     field_grp = root_grp["magnetic_field"]
-    BR = field_grp["BR"][:].reshape(g.nR, g.nphi, g.nZ)
-    Bphi = field_grp["Bphi"][:].reshape(g.nR, g.nphi, g.nZ)
-    BZ = field_grp["BZ"][:].reshape(g.nR, g.nphi, g.nZ)
+    BR = field_grp["BR"][:].reshape(grid.nR, grid.nphi, grid.nZ)
+    Bphi = field_grp["Bphi"][:].reshape(grid.nR, grid.nphi, grid.nZ)
+    BZ = field_grp["BZ"][:].reshape(grid.nR, grid.nphi, grid.nZ)
 
     root_grp.close()
 
     # filled(np.nan) is used to convert masked arrays to normal arrays
-    return g, BR.filled(np.nan), Bphi.filled(np.nan), BZ.filled(np.nan)
+    return grid, BR.filled(np.nan), Bphi.filled(np.nan), BZ.filled(np.nan)
 
 
 def plot_modes(field_file, n_modes, figsize=(8, 4)):
@@ -140,34 +140,34 @@ def plot_modes(field_file, n_modes, figsize=(8, 4)):
         figsize (tuple, optional): Size of the figure in inches. Defaults to (8, 4).
     """
     if field_file.endswith(".h5") or field_file.endswith(".hdf5"):
-        g, BR, Bphi, BZ = read_field_hdf5(field_file)
+        grid, BR, Bphi, BZ = read_field_hdf5(field_file)
     elif field_file.endswith(".nc") or field_file.endswith(".cdf"):
-        g, BR, Bphi, BZ = read_field_netcdf(field_file)
+        grid, BR, Bphi, BZ = read_field_netcdf(field_file)
     else:
-        g, BR, Bphi, BZ = read_field(field_file)
+        grid, BR, Bphi, BZ = read_field(field_file)
 
     # Evaluating the magnetic field modes on a grid with double the resolution of the B-field grid
-    g_double = grid(
-        2 * g.nR - 1,
-        g.nphi,
-        2 * g.nZ - 1,
-        g.R_min,
-        g.R_max,
-        g.phi_min,
-        g.phi_max,
-        g.Z_min,
-        g.Z_max,
+    grid_double = GRID(
+        2 * grid.nR - 1,
+        grid.nphi,
+        2 * grid.nZ - 1,
+        grid.R_min,
+        grid.R_max,
+        grid.phi_min,
+        grid.phi_max,
+        grid.Z_min,
+        grid.Z_max,
     )
 
-    if g_double.nphi - 1 < 2 * n_modes:
+    if grid_double.nphi - 1 < 2 * n_modes:
         raise ValueError("n_modes is too high. Condition: 2 * n_max <= nphi - 1")
 
-    A = get_A_field_modes(g, BR, Bphi, BZ)
+    A = get_A_field_modes(grid, BR, Bphi, BZ)
 
     # Get logaritmic value of the squared norm of the magnetic field for each mode, i.e. for each subplot k
-    log_Bn2 = np.empty((n_modes, g_double.nR, g_double.nZ))
+    log_Bn2 = np.empty((n_modes, grid_double.nR, grid_double.nZ))
     for k in range(n_modes):
-        BnR, Bnphi, BnZ = calc_B_field_modes(g_double.R, g_double.Z, k + 1, A)
+        BnR, Bnphi, BnZ = calc_B_field_modes(grid_double.R, grid_double.Z, k + 1, A)
         # Add up the squared norm of the B-field components and take the logarithm of it
         log_Bn2[k, :, :] = np.log10(
             (BnR * np.conj(BnR) + Bnphi * np.conj(Bnphi) + BnZ * np.conj(BnZ)).real
@@ -186,7 +186,7 @@ def plot_modes(field_file, n_modes, figsize=(8, 4)):
             log_Bn2[k, :, :].T,
             origin="lower",
             cmap="magma",
-            extent=[g.R_min, g.R_max, g.Z_min, g.Z_max],
+            extent=[grid.R_min, grid.R_max, grid.Z_min, grid.Z_max],
         )
         im.set_norm(color_norm)
         axs[k].set_title(f"$n = {k + 1}$")

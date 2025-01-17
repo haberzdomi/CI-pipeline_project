@@ -2,7 +2,7 @@ import numpy as np
 from scipy.interpolate import RectBivariateSpline
 
 
-class A_splines:
+class A_SPLINES:
     def __init__(self, n=0):
         """Class to store the spline functions for the vector potential components.
 
@@ -29,12 +29,12 @@ def get_A_field_modes(grid, BR, Bphi, BZ):
 
     Args:
         n_max (int): highest mode number to be calculated
-        grid (grid object): Object containing the cylindrical 3D-grid and its parameters.
+        grid (GRID object): Object containing the cylindrical 3D-grid and its parameters.
         BR (array[float], shape=(nR, nphi, nZ)): R-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
         Bphi (array[float], shape=(nR, nphi, nZ)): phi-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
         BZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
     Returns:
-        A (A_splines): Object containing the spline functions for the first n modes of the real and imaginary parts of the radial and axial vector potential components.
+        A (A_SPLINES): Object containing the spline functions for the first n modes of the real and imaginary parts of the radial and axial vector potential components.
     """
 
     # Get the maximum mode number based on Nyquist theorem. The minus one is
@@ -56,7 +56,7 @@ def get_A_field_modes(grid, BR, Bphi, BZ):
     AnZ = -A_factor * BnZ
 
     # Interpolation via bivariate spline approximation.
-    A = A_splines(n_max)
+    A = A_SPLINES(n_max)
     for k in range(n_max):
         # The data values (3rd arg) are defined on the grid (1st and 2nd arg).
         # kx, ky are the degrees of the bivariate spline.

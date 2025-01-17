@@ -2,12 +2,13 @@
 # Clara Rinner 01137166
 #
 import argparse
-from grid import grid
+from grid import GRID
 import h5py
 from netCDF4 import Dataset
 import numba as nb
 import numpy as np
 from timeit import default_timer
+
 
 ##
 @nb.experimental.jitclass(
@@ -20,7 +21,7 @@ from timeit import default_timer
         ("n_nodes", nb.int32),
     ]
 )
-class coils:
+class COILS:
     X: np.ndarray
     Y: np.ndarray
     Z: np.ndarray
@@ -198,7 +199,7 @@ def read_coils(coil_file):
     if np.any(has_current[last_nodes_idxs] != 0.0):
         raise Exception(str(has_current[n_nodes - 1]) + "=cbc~=0, stop")
 
-    return coils(X, Y, Z, has_current, coil_number, n_nodes)
+    return COILS(X, Y, Z, has_current, coil_number, n_nodes)
 
 
 def read_currents(current_file):
@@ -216,14 +217,14 @@ def read_currents(current_file):
 
 
 def read_grid(grid_file, field_periodicity=1):
-    """Read the input data stored in grid_file and return a grid object.
+    """Read the input data stored in grid_file and return a GRID object.
 
     Args:
         grid_file (str): Input file containing the parameters for a discretized grid.
         field_periodicity (int): Periodicity of the field in phi direction used for Tokamaks. Defaults to 1.
 
     Returns:
-        grid object with the parameters read from the grid_file.
+        GRID object with the parameters read from the grid_file.
     """
     with open(grid_file, "r") as f:
         nR, nphi, nZ = [int(data) for data in f.readline().split()]
@@ -232,14 +233,14 @@ def read_grid(grid_file, field_periodicity=1):
     phi_min = 0
     phi_max = 2 * np.pi / field_periodicity
 
-    return grid(nR, nphi, nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max)
+    return GRID(nR, nphi, nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max)
 
 
 def get_field_on_grid(grid, coils, currents, integrator):
     """Loop over the discretized grid points and calculate the magnetic field components.
 
     Args:
-        grid (grid object): Object containing the cylindrical 3D-grid and its parameters.
+        grid (GRID object): Object containing the cylindrical 3D-grid and its parameters.
         coils (coils object): coil data
         currents (array[float], shape=(n_coils, )): Currents of each coil. n_coils is the total number of coils.
         integrator (function): Function to evaluate the Biot-Savart integral and calculate the magnetic field components.
@@ -267,7 +268,7 @@ def get_field_on_grid_numba_parallel(grid, coils, currents, integrator):
     """Loop parallelized over the discretized grid points and calculate the magnetic field components.
 
     Args:
-        grid (grid object): Object containing the cylindrical 3D-grid and its parameters.
+        grid (GRID object): Object containing the cylindrical 3D-grid and its parameters.
         coils (coils object): coil data
         currents (array[float], shape=(n_coils, )): Currents of each coil. n_coils is the total number of coils.
 
@@ -296,7 +297,7 @@ def write_field_to_file(field_file, grid, BR, Bphi, BZ, field_periodicity):
 
     Args:
         field_file (str): Output file into which the magnetic field components and calculation parameters are written to.
-        grid (grid object): Object containing the cylindrical 3D-grid and its parameters.
+        grid (GRID object): Object containing the cylindrical 3D-grid and its parameters.
         BR (array[float], shape=(n_points, )): Radial component fo the magnetic field. n_points is the total number of grid points.
         Bphi (array[float], shape=(n_points, )): Toroidal component of the magnetic field. n_points is the total number of grid points.
         BZ (array[float], shape=(n_points, )): Axial component of the magnetic field. n_points is the total number of grid points.
@@ -318,7 +319,7 @@ def write_field_hdf5(field_file, grid, BR, Bphi, BZ, field_periodicity):
 
     Args:
         field_file (str): Output file into which the magnetic field components and calculation parameters are written to. Must have a HDF5 file extension.
-        grid (grid object): Object containing the cylindrical 3D-grid and its parameters.
+        grid (GRID object): Object containing the cylindrical 3D-grid and its parameters.
         BR (array[float], shape=(n_points, )): Radial component fo the magnetic field. n_points is the total number of grid points.
         Bphi (array[float], shape=(n_points, )): Toroidal component of the magnetic field. n_points is the total number of grid points.
         BZ (array[float], shape=(n_points, )): Axial component of the magnetic field. n_points is the total number of grid points.
@@ -359,7 +360,7 @@ def write_field_netcdf(field_file, grid, BR, Bphi, BZ, field_periodicity):
 
     Args:
         field_file (str): Output file into which the magnetic field components and calculation parameters are written to. Must have a netCDF4 file extension.
-        grid (grid object): Object containing the cylindrical 3D-grid and its parameters.
+        grid (GRID object): Object containing the cylindrical 3D-grid and its parameters.
         BR (array[float], shape=(n_points, )): Radial component fo the magnetic field. n_points is the total number of grid points.
         Bphi (array[float], shape=(n_points, )): Toroidal component of the magnetic field. n_points is the total number of grid points.
         BZ (array[float], shape=(n_points, )): Axial component of the magnetic field. n_points is the total number of grid points.
