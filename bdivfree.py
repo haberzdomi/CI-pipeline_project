@@ -29,7 +29,7 @@ def get_A_field_modes(grid, BR, Bphi, BZ):
 
     Args:
         n_max (int): highest mode number to be calculated
-        grid (grid_parameters): Object containing the cylindrical 3D-grid and its parameters.
+        grid (grid object): Object containing the cylindrical 3D-grid and its parameters.
         BR (array[float], shape=(nR, nphi, nZ)): R-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
         Bphi (array[float], shape=(nR, nphi, nZ)): phi-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
         BZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.

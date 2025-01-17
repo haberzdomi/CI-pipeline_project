@@ -1,7 +1,10 @@
 import numpy as np
 import numba as nb
 
-@nb.experimental.jitclass([('R', nb.float64[:]),('phi', nb.float64[:]),('Z', nb.float64[:])])
+
+@nb.experimental.jitclass(
+    [("R", nb.float64[:]), ("phi", nb.float64[:]), ("Z", nb.float64[:])]
+)
 class grid:
     nR: int
     nphi: int
@@ -15,6 +18,7 @@ class grid:
     R: np.ndarray
     phi: np.ndarray
     Z: np.ndarray
+
     def __init__(self, nR, nphi, nZ, R_min, R_max, phi_min, phi_max, Z_min, Z_max):
         """Object to store the parameters for the discretized grid and the grid itself.
 
@@ -45,5 +49,3 @@ class grid:
         self.R = np.linspace(R_min, R_max, nR)
         self.phi = np.linspace(phi_min, phi_max, nphi)
         self.Z = np.linspace(Z_min, Z_max, nZ)
-
-

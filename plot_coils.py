@@ -3,14 +3,14 @@ import matplotlib.pyplot as plt
 from biotsavart import read_coils
 
 
-def plot_coils(fname, figsize=(6, 5)):
-    """Make a 3D plot of the coils. The geometry of the coils is read from fname.
+def plot_coils(coil_file, figsize=(6, 5)):
+    """Make a 3D plot of the coils. The geometry of the coils is read from coil_file.
 
     Args:
-        fname (str): File name of the coil geometry
+        coil_file (str): File name of the coil geometry
         figsize (tuple, optional): Size of the figure in inches. Defaults to (6, 5).
     """
-    coil_parameters = read_coils(fname)
+    coil_parameters = read_coils(coil_file)
     n_coils = coil_parameters.coil_number[-1]  # total number of coils
     nseg = int(coil_parameters.n_nodes / n_coils)  # size of each coil segment
 
@@ -29,13 +29,13 @@ def plot_coils(fname, figsize=(6, 5)):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--fname",
+        "--coil_file",
         type=str,
-        default="coil_file",
+        default="co_asd.dd",
         help="Input file containing the coil geometry.",
     )
     parser.add_argument(
         "--figsize", type=tuple, default=(6, 5), help="Size of the figure in inches"
     )
     args = parser.parse_args()
-    plot_coils(args.fname, args.figsize)
+    plot_coils(args.coil_file, args.figsize)

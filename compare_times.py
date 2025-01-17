@@ -58,8 +58,8 @@ def get_runtimes(grid, coils, currents):
 
 
 test_grid = grid(12, 32, 24, 75, 267, 0, 2 * np.pi, -154, 154)
-coils = read_coils("coil_file")
-currents = read_currents("current_file")
+coils = read_coils("co_asd.dd")
+currents = read_currents("cur_asd.dd")
 
 times = get_runtimes(test_grid, coils, currents)
 
