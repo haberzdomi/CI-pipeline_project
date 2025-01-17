@@ -67,10 +67,10 @@ def calc_biotsavart(grid_coordinates, coils, currents):
     R_grid = grid_coordinates[0]
     phi_grid = grid_coordinates[1]
 
-    cosf = np.cos(phi_grid)
-    sinf = np.sin(phi_grid)
-    Y_grid = R_grid * sinf
-    X_grid = R_grid * cosf
+    cos_phi = np.cos(phi_grid)
+    sin_phi = np.sin(phi_grid)
+    Y_grid = R_grid * sin_phi
+    X_grid = R_grid * cos_phi
     Z_grid = grid_coordinates[2]
     grid_point = np.array([X_grid, Y_grid, Z_grid])
 
@@ -106,8 +106,8 @@ def calc_biotsavart(grid_coordinates, coils, currents):
 
         R1 = R2
 
-    BR = B[0] * cosf + B[1] * sinf
-    Bphi = B[1] * cosf - B[0] * sinf
+    BR = B[0] * cos_phi + B[1] * sin_phi
+    Bphi = B[1] * cos_phi - B[0] * sin_phi
     BZ = B[2]
 
     return BR, Bphi, BZ
@@ -132,10 +132,10 @@ def calc_biotsavart_vectorized(grid_coordinates, coils, currents):
     RI = grid_coordinates[0]
     fI = grid_coordinates[1]
     ZI = grid_coordinates[2]
-    cosf = np.cos(fI)
-    sinf = np.sin(fI)
-    Y_grid = RI * sinf
-    X_grid = RI * cosf
+    cos_phi = np.cos(fI)
+    sin_phi = np.sin(fI)
+    Y_grid = RI * sin_phi
+    X_grid = RI * cos_phi
     Z_grid = ZI
     grid_point = np.array([X_grid, Y_grid, Z_grid])
 
@@ -170,8 +170,8 @@ def calc_biotsavart_vectorized(grid_coordinates, coils, currents):
 
     B = np.sum(cross_products * factor2_array[:, np.newaxis], axis=0)
 
-    B_R = B[0] * cosf + B[1] * sinf
-    B_phi = B[1] * cosf - B[0] * sinf
+    B_R = B[0] * cos_phi + B[1] * sin_phi
+    B_phi = B[1] * cos_phi - B[0] * sin_phi
     B_Z = B[2]
 
     return B_R, B_phi, B_Z
