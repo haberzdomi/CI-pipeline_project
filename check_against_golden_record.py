@@ -1,10 +1,10 @@
+from backup_files import backup_files, cleanup_files, restore_backups
 from biotsavart import (
     calc_biotsavart,
     make_field_file_from_coils,
     get_field_on_grid_numba_parallel,
 )
 import numpy as np
-import os
 from PIL import Image, ImageDraw, ImageFont
 from plot_modes import plot_modes, read_field, read_field_hdf5, read_field_netcdf
 import pytest
@@ -38,53 +38,11 @@ def get_filenames():
     )
 
 
-def backup_files(files):
-    """Backup files which may be overwritten by the test by moving them into a temporary folder.
-
-    Args:
-        files (iterable): Paths to files to backup in order to protect them from being overwritten
-
-    Returns:
-        new_files (iterable): New paths of the files which have been moved to temporary
-    """
-    if not os.path.exists("temporary"):
-        os.mkdir("temporary")
-    new_files = files.copy()
-    for i, file in enumerate(files):
-        if os.path.exists(file):
-            os.rename(file, f"temporary/{file}")
-            new_files[i] = f"temporary/{file}"
-    return new_files
-
-
-def cleanup_files(files):
-    """(CAUTION) Delete all files in input argument list.
-
-    Args:
-        files (iterable): Paths to files which are deleted.
-    """
-    for file in files:
-        if os.path.exists(file):
-            os.remove(file)
-
-
-def restore_backups(files):
-    """Move files in files outside the temporary folder and delete the folder afterwards.
-
-    Args:
-        files (iterable): Files to be moved
-    """
-    for file in files:
-        if os.path.exists(file):
-            os.rename(file, file.split("temporary/")[1])
-    os.rmdir("temporary")
-
-
 @pytest.fixture
 def backup_and_cleanup():
     """First, get the file paths for the golden record input/output files and the output which will be calculated in the test.
-    Then backup files which may be overwritten and yield the paths of the files. Afterwards restore the backuped files and delete
-    files and folders created during the test.
+    Then backup files which may be overwritten and yield the new paths of the files. Afterwards restore the backuped files and
+    delete files and folders created during the test.
 
     Yields:
         field_file (str): Output file of the test Biot-Savart calculation containing the magnetic field values

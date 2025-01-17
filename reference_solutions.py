@@ -1,8 +1,23 @@
+from backup_files import backup_files, cleanup_files, restore_backups
 from bdivfree import get_A_field_modes, calc_B_field_modes
 from biotsavart import make_field_file_from_coils
 import numpy as np
-import os
 from plot_modes import read_field, read_field_hdf5, read_field_netcdf
+
+
+def get_filenames():
+    """Return the paths of the file for the new calculation and the golden record input and output files.
+
+    Returns:
+        grid_file (str): File defining the grid for the Biot-Savart calculation in the test
+        current_file (str): File defining the coil currents for the Biot-Savart calculation in the test
+        coil_file (str): File defining the magnetic coils for the Biot-Savart calculation in the test
+        field_file (str): File containing the magnetic field values of the Biot-Savart calculation in the test
+    """
+    grid_file = "test_grid_file"
+    current_file = "test_current_file"
+    coil_file = "test_coil_file"
+    return (grid_file, current_file, coil_file)
 
 
 def BZ_formula(z, R, I):
@@ -38,14 +53,18 @@ def circular_current(
         BZ (array[float], shape=(nZ, )): the values of BZ(Z), as returned by the magnetic field calculation of biotsavart.py
         BZ_analytical (array[float], shape=(nZ, )): the values of BZ(Z), as returned by the analytical formula
     """
-    # Create input files for test
-    with open("test_grid_file", "w") as coil_file:
-        coil_file.write(f"{nR} {nphi} {nZ} \n")
-        coil_file.write(f"{0} {R_max} \n")
-        coil_file.write(f"{-R_max} {R_max} \n")
+    grid_file, current_file, coil_file = get_filenames()
+    files = [field_file, grid_file, current_file, coil_file]
+    protected_files = backup_files(files)
 
-    with open("test_coil_file", "w") as coil_file:
-        coil_file.write(f"{nseg + 1} \n")
+    # Create input files for test
+    with open(grid_file, "w") as file:
+        file.write(f"{nR} {nphi} {nZ} \n")
+        file.write(f"{0} {R_max} \n")
+        file.write(f"{-R_max} {R_max} \n")
+
+    with open(coil_file, "w") as file:
+        file.write(f"{nseg + 1} \n")
 
         dphi = 2 * np.pi / nseg
         X = R_0 * np.cos(np.arange(nseg) * dphi)
@@ -57,18 +76,18 @@ def circular_current(
         has_current[-1] = 0  # The last point does not have current
         coil_number = np.ones_like(X)
         np.savetxt(
-            coil_file,
+            file,
             np.column_stack((X, Y, Z, has_current, coil_number)),
         )
 
-    with open("test_current_file", "w") as current_file:
-        current_file.write(f"{I_c} \n")
+    with open(current_file, "w") as file:
+        file.write(f"{I_c} \n")
 
     # Run the calculation
     make_field_file_from_coils(
-        "test_grid_file",
-        "test_coil_file",
-        "test_current_file",
+        grid_file,
+        coil_file,
+        current_file,
         field_file,
         integrator,
         grid_iterator,
@@ -88,14 +107,8 @@ def circular_current(
     Z = np.linspace(-R_max, R_max, nZ)
     BZ_analytic = [BZ_formula(z, R_0, I_c) for z in Z]
 
-    # Remove test input/output files
-    for filename in [
-        "test_grid_file",
-        "test_coil_file",
-        "test_current_file",
-        field_file,
-    ]:
-        os.remove(filename)
+    cleanup_files(files)
+    restore_backups(protected_files)
 
     return Z, BZ, BZ_analytic
 
