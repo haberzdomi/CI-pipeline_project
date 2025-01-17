@@ -4,6 +4,7 @@ from grid import grid
 import h5py
 from matplotlib.colors import Normalize
 import matplotlib.pyplot as plt
+from netCDF4 import Dataset
 import numpy as np
 from os.path import exists
 
@@ -46,6 +47,7 @@ def read_field_hdf5(field_file):
     Args:
         field_file (str): File name of the magnetic field calculation output.
                           If the file does not exist, the file "field_original.dat" is read instead by calling read_field.
+                          Must have a HDF5 file extension.
 
     Returns:
         g (grid object): Object containing the cylindrical 3D-grid and its parameters.
@@ -56,23 +58,69 @@ def read_field_hdf5(field_file):
     if not exists(field_file):
         field_file = "golden_record/field.dat"
         return read_field(field_file)
-    if not field_file.endswith(".h5"):
+    if not (field_file.endswith(".h5") or field_file.endswith(".hdf5")):
         raise ValueError(
-            "Output file must be a HDF5 file. Call read_field instead for .dat files."
+            "Output file must be a HDF5 file. Instead call read_field_netcdf for netCDF4 files or read_field for .dat files."
         )
 
     f = h5py.File(field_file, "r")
     nR, nphi, nZ, R_min, R_max, Z_min, Z_max = f["grid/input_parameters"][()]
-    
+
     g = grid(int(nR), int(nphi), int(nZ), R_min, R_max, 0, 2 * np.pi, Z_min, Z_max)
 
     BR, Bphi, BZ = f["magnetic_field/data"][()]
     BR = BR.reshape(g.nR, g.nphi, g.nZ)
     Bphi = Bphi.reshape(g.nR, g.nphi, g.nZ)
     BZ = BZ.reshape(g.nR, g.nphi, g.nZ)
-    
+
     f.close()
     return g, BR, Bphi, BZ
+
+
+def read_field_netcdf(field_file):
+    """From the netCDF4-file field_file get the discretized 3D-grid and the magnetic field components for each point on this grid.
+
+    Args:
+        field_file (str): File name of the magnetic field calculation output.
+                          If the file does not exist, the file "field_original.dat" is read instead by calling read_field.
+                          Must have a netCDF4 file extension.
+
+    Returns:
+        g (grid object): Object containing the cylindrical 3D-grid and its parameters.
+        BR (array[float], shape=(nR, nphi, nZ)): R-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
+        Bphi (array[float], shape=(nR, nphi, nZ)): phi-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
+        BZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
+    """
+    if not exists(field_file):
+        field_file = "golden_record/field.dat"
+        return read_field(field_file)
+    if not (field_file.endswith(".nc") or field_file.endswith(".cdf")):
+        raise ValueError(
+            "Output file must be a netCDF4 file. Instead call read_field_hdf5 for HDF5 files or read_field for .dat files."
+        )
+
+    root_grp = Dataset(field_file, "r", format="NETCDF4")
+    grid_grp = root_grp["grid"]
+    grid_grp
+    nR = len(grid_grp["R"])
+    nphi = len(grid_grp["phi"])
+    nZ = len(grid_grp["Z"])
+    R_min = float(grid_grp["R"][0])
+    R_max = float(grid_grp["R"][-1])
+    Z_min = float(grid_grp["Z"][0])
+    Z_max = float(grid_grp["Z"][-1])
+
+    g = grid(nR, nphi, nZ, R_min, R_max, 0, 2 * np.pi, Z_min, Z_max)
+
+    field_grp = root_grp["magnetic_field"]
+    BR = field_grp["BR"][:].reshape(g.nR, g.nphi, g.nZ)
+    Bphi = field_grp["Bphi"][:].reshape(g.nR, g.nphi, g.nZ)
+    BZ = field_grp["BZ"][:].reshape(g.nR, g.nphi, g.nZ)
+
+    root_grp.close()
+
+    # filled(np.nan) is used to convert masked arrays to normal arrays
+    return g, BR.filled(np.nan), Bphi.filled(np.nan), BZ.filled(np.nan)
 
 
 def plot_modes(field_file, n_modes, figsize=(8, 4)):
@@ -91,8 +139,10 @@ def plot_modes(field_file, n_modes, figsize=(8, 4)):
         n_modes (int): Number of modes which should be plotted.
         figsize (tuple, optional): Size of the figure in inches. Defaults to (8, 4).
     """
-    if field_file.endswith(".h5"):
+    if field_file.endswith(".h5") or field_file.endswith(".hdf5"):
         g, BR, Bphi, BZ = read_field_hdf5(field_file)
+    elif field_file.endswith(".nc") or field_file.endswith(".cdf"):
+        g, BR, Bphi, BZ = read_field_netcdf(field_file)
     else:
         g, BR, Bphi, BZ = read_field(field_file)
 

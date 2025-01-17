@@ -4,6 +4,7 @@
 import argparse
 from grid import grid
 import h5py
+from netCDF4 import Dataset
 import numba as nb
 import numpy as np
 from timeit import default_timer
@@ -323,7 +324,7 @@ def write_field_hdf5(field_file, grid, BR, Bphi, BZ, field_periodicity):
         BZ (array[float], shape=(n_points, )): Axial component of the magnetic field. n_points is the total number of grid points.
         field_periodicity (int): Periodicity of the field in phi direction used for Tokamaks.
     """
-    if not field_file.endswith(".h5"):
+    if not (field_file.endswith(".h5") or field_file.endswith(".hdf5")):
         raise ValueError(
             "Output file must be a HDF5 file when selecting the write_field_hdf5 writer."
         )
@@ -351,6 +352,63 @@ def write_field_hdf5(field_file, grid, BR, Bphi, BZ, field_periodicity):
     field_grp["data"].attrs["units"] = "G, G, G"
 
     f.close()
+
+
+def write_field_netcdf(field_file, grid, BR, Bphi, BZ, field_periodicity):
+    """Write the calculation parameters (grid, field_periodicity) and the magnetic field components to an output file of the format "netCDF4".
+
+    Args:
+        field_file (str): Output file into which the magnetic field components and calculation parameters are written to. Must have a netCDF4 file extension.
+        grid (grid object): Object containing the cylindrical 3D-grid and its parameters.
+        BR (array[float], shape=(n_points, )): Radial component fo the magnetic field. n_points is the total number of grid points.
+        Bphi (array[float], shape=(n_points, )): Toroidal component of the magnetic field. n_points is the total number of grid points.
+        BZ (array[float], shape=(n_points, )): Axial component of the magnetic field. n_points is the total number of grid points.
+        field_periodicity (int): Periodicity of the field in phi direction used for Tokamaks.
+    """
+    if not (field_file.endswith(".nc") or field_file.endswith(".cdf")):
+        raise ValueError(
+            "Output file must be a netCDF4 file when selecting the write_field_netcdf writer."
+        )
+
+    root_grp = Dataset("field_file.nc", "w", format="NETCDF4")
+
+    root_grp.createDimension("R", grid.nR)
+    root_grp.createDimension("phi", grid.nphi)
+    root_grp.createDimension("Z", grid.nZ)
+    root_grp.createDimension("B", grid.nR * grid.nphi * grid.nZ)
+
+    grid_grp = root_grp.createGroup("grid")
+    grid_grp.createVariable("R", "f8", ("R",))
+    grid_grp["R"].unit = "cm"
+    grid_grp["R"][:] = grid.R
+    grid_grp.createVariable("phi", "f8", ("phi",))
+    grid_grp["phi"].unit = "rad"
+    grid_grp["phi"][:] = grid.phi
+    grid_grp.createVariable("Z", "f8", ("Z",))
+    grid_grp["Z"].unit = "cm"
+    grid_grp["Z"][:] = grid.Z
+    grid_grp.createVariable("periodicity", "f8")
+    grid_grp["periodicity"].description = (
+        "Periodicity of the field in phi direction used for Tokamaks."
+    )
+    grid_grp["periodicity"].units = " "
+    grid_grp["periodicity"][:] = field_periodicity
+
+    field_grp = root_grp.createGroup("magnetic_field")
+    field_grp.createVariable("BR", "f8", ("B",))
+    field_grp["BR"].description = "Radial component of the magnetic field"
+    field_grp["BR"].unit = "G"
+    field_grp["BR"][:] = BR
+    field_grp.createVariable("Bphi", "f8", ("B",))
+    field_grp["Bphi"].description = "Toroidal component of the magnetic field"
+    field_grp["Bphi"].unit = "G"
+    field_grp["Bphi"][:] = Bphi
+    field_grp.createVariable("BZ", "f8", ("B",))
+    field_grp["BZ"].description = "Axial component of the magnetic field"
+    field_grp["BZ"].unit = "G"
+    field_grp["BZ"][:] = BZ
+
+    root_grp.close()
 
 
 def make_field_file_from_coils(
@@ -410,8 +468,10 @@ def make_field_file_from_coils(
     BR, Bphi, BZ = grid_iterator(grid, coils, currents, integrator)
     print(f"Field calculation took: {default_timer() - start} s")
 
-    if field_file.endswith(".h5"):
+    if field_file.endswith(".h5") or field_file.endswith(".hdf5"):
         write_field_hdf5(field_file, grid, BR, Bphi, BZ, field_periodicity)
+    elif field_file.endswith(".nc") or field_file.endswith(".cdf"):
+        write_field_netcdf(field_file, grid, BR, Bphi, BZ, field_periodicity)
     else:
         write_field_to_file(field_file, grid, BR, Bphi, BZ, field_periodicity)
 

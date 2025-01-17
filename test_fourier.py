@@ -1,10 +1,20 @@
 from matplotlib import pyplot as plt
 from matplotlib import rcParams
 import numpy as np
+import pytest
 from reference_solutions import fourier_analysis
 
 
-def test_fourier(n_max=8, field_file="field_file.h5"):
+@pytest.mark.parametrize(
+    "n_max, field_file",
+    [
+        [
+            8,
+            "field_file.h5",
+        ],
+    ],
+)
+def test_fourier(n_max, field_file):
     """Test the handwritten discrete fourier transform of the magnetic field
     components against the solution from numpy.fft.fft. Both calculation
     methods are only allowed to deviate in small numerical errors. For the
@@ -15,11 +25,9 @@ def test_fourier(n_max=8, field_file="field_file.h5"):
     field_file. The solutions are also compared visually in a line plot for
     each of the first 'n_max' modes.
 
-
     Args:
-        n_max (int, optional): highest number of magnetic field mode up to which the test is done.
-                               Defaults to 8.
-        field_file (str, optional): File name of the magnetic field calculation output. Defaults to "field_file.h5".
+        n_max (int): highest number of magnetic field mode up to which the test is done.
+        field_file (str): File name of the magnetic field calculation output.
     """
 
     # Calculate the magnetic field components for the first 'n_max' modes

@@ -6,7 +6,7 @@ from biotsavart import (
 import numpy as np
 import os
 from PIL import Image, ImageDraw, ImageFont
-from plot_modes import plot_modes, read_field, read_field_hdf5
+from plot_modes import plot_modes, read_field, read_field_hdf5, read_field_netcdf
 import pytest
 
 
@@ -200,8 +200,10 @@ def test_field_against_golden_record(backup_and_cleanup):
     g_gold_rec, BR_gold_rec, Bphi_gold_rec, BZ_gold_rec = read_field(
         field_file_gold_rec
     )
-    if field_file.endswith(".h5"):
+    if field_file.endswith(".h5") or field_file.endswith(".hdf5"):
         g, BR, Bphi, BZ = read_field_hdf5(field_file)
+    elif field_file.endswith(".nc") or field_file.endswith(".cdf"):
+        g, BR, Bphi, BZ = read_field_netcdf(field_file)
     else:
         g, BR, Bphi, BZ = read_field(field_file)
 

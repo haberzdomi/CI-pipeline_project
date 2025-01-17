@@ -1,12 +1,12 @@
-import pytest
-import matplotlib.pyplot as plt
-import numpy as np
 from biotsavart import (
     calc_biotsavart,
     calc_biotsavart_vectorized,
     get_field_on_grid,
     get_field_on_grid_numba_parallel,
 )
+import matplotlib.pyplot as plt
+import numpy as np
+import pytest
 
 
 @pytest.mark.parametrize(

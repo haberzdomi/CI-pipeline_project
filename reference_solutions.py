@@ -2,7 +2,7 @@ from bdivfree import get_A_field_modes, calc_B_field_modes
 from biotsavart import make_field_file_from_coils
 import numpy as np
 import os
-from plot_modes import read_field, read_field_hdf5
+from plot_modes import read_field, read_field_hdf5, read_field_netcdf
 
 
 def BZ_formula(z, R, I):
@@ -76,8 +76,10 @@ def circular_current(
     )
 
     # Process output data
-    if field_file.endswith(".h5"):
+    if field_file.endswith(".h5") or field_file.endswith(".hdf5"):
         _, _, _, BZ = read_field_hdf5(field_file)
+    elif field_file.endswith(".nc") or field_file.endswith(".cdf"):
+        _, _, _, BZ = read_field_netcdf(field_file)
     else:
         _, _, _, BZ = read_field(field_file)
     BZ = BZ[0, 0, :]
@@ -115,8 +117,10 @@ def fourier_analysis(n_max, field_file):
                                                           numpy.fft.fft (fast fourier transformation method).
     """
     # Get grid and magnetic field components from the calculation output field_file
-    if field_file.endswith(".h5"):
+    if field_file.endswith(".h5") or field_file.endswith(".hdf5"):
         g, BR, Bphi, BZ = read_field_hdf5(field_file)
+    elif field_file.endswith(".nc") or field_file.endswith(".cdf"):
+        g, BR, Bphi, BZ = read_field_netcdf(field_file)
     else:
         g, BR, Bphi, BZ = read_field(field_file)
 
