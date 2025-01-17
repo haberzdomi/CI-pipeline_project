@@ -10,7 +10,7 @@ from reference_solutions import fourier_analysis
     [
         [
             8,
-            "field_file.h5",
+            "field.h5",
         ],
     ],
 )

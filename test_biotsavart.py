@@ -20,7 +20,7 @@ import pytest
             4,
             3,
             64,
-            "field_file.h5",
+            "field.h5",
             calc_biotsavart_vectorized,
             get_field_on_grid_numba_parallel,
         ],

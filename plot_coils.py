@@ -31,7 +31,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--coil_file",
         type=str,
-        default="coil_file",
+        default="co_asd.dd",
         help="Input file containing the coil geometry.",
     )
     parser.add_argument(

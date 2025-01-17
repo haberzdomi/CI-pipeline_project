@@ -208,7 +208,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--field_file",
         type=str,
-        default="field_file.h5",
+        default="field.h5",
         help="File name of the magnetic field calculation output containing the magnetic field components and calculation parameters.",
     )
     parser.add_argument(

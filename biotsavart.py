@@ -370,7 +370,7 @@ def write_field_netcdf(field_file, grid, BR, Bphi, BZ, field_periodicity):
             "Output file must be a netCDF4 file when selecting the write_field_netcdf writer."
         )
 
-    root_grp = Dataset("field_file.nc", "w", format="NETCDF4")
+    root_grp = Dataset("field.nc", "w", format="NETCDF4")
 
     root_grp.createDimension("R", grid.nR)
     root_grp.createDimension("phi", grid.nphi)
@@ -412,10 +412,10 @@ def write_field_netcdf(field_file, grid, BR, Bphi, BZ, field_periodicity):
 
 
 def make_field_file_from_coils(
-    grid_file="grid_file",
-    coil_file="coil_file",
-    current_file="current_file",
-    field_file="field_file.h5",
+    grid_file="biotsavart.inp",
+    coil_file="co_asd.dd",
+    current_file="cur_asd.dd",
+    field_file="field.h5",
     integrator=calc_biotsavart,
     grid_iterator=get_field_on_grid_numba_parallel,
     field_periodicity=1,
@@ -425,10 +425,10 @@ def make_field_file_from_coils(
     the results to the output file field_file. Print the time it took to calculate the field.
 
     Args:
-        grid_file (str, optional): Input file containing the parameters for a discretized grid. Defaults to "grid_file".
-        coil_file (str, optional): Input file containing the coil geometry. Defaults to "coil_file".
-        current_file (str, optional): Input file containing the currents of each coil. Defaults to "current_file".
-        field_file (str, optional): Output file into which the magnetic field components and calculation parameters are written to. Defaults to "field_file.h5".
+        grid_file (str, optional): Input file containing the parameters for a discretized grid. Defaults to "biotsavart.inp".
+        coil_file (str, optional): Input file containing the coil geometry. Defaults to "co_asd.dd".
+        current_file (str, optional): Input file containing the currents of each coil. Defaults to "cur_asd.dd".
+        field_file (str, optional): Output file into which the magnetic field components and calculation parameters are written to. Defaults to "field.h5".
         integrator (function, optional): Function to evaluate the Biot-Savart integral and calculate the magnetic field components. Defaults to calc_biotsavart.
         grid_iterator (function, optional): Function which iterates over the grid points onto which the magnetic field is calculated. Defaults to get_field_on_grid_numba_parallel.
         field_periodicity (int, optional): Periodicity of the field in phi direction used for Tokamaks. Defaults to 1.
@@ -481,25 +481,25 @@ if __name__ == "__main__":
     parser.add_argument(
         "--grid_file",
         type=str,
-        default="grid_file",
+        default="biotsavart.inp",
         help="Input file containing the parameters for a discretized grid.",
     )
     parser.add_argument(
         "--coil_file",
         type=str,
-        default="coil_file",
+        default="co_asd.dd",
         help="Input file containing the coil geometry.",
     )
     parser.add_argument(
         "--current_file",
         type=str,
-        default="current_file",
+        default="cur_asd.dd",
         help="Input file containing the currents of each coil.",
     )
     parser.add_argument(
         "--field_file",
         type=str,
-        default="field_file.h5",
+        default="field.h5",
         help="Output file into which the magnetic field components and calculation parameters are written to.",
     )
     parser.add_argument(

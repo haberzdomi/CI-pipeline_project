@@ -20,7 +20,7 @@ def get_filenames():
         coil_file_gold_rec (str): Original input file defining the magnetic coils for the Biot-Savart calculation
         field_file_gold_rec (str): Original output file of the Biot-Savart calculation containing the magnetic field values.
     """
-    field_file = "field_file.h5"
+    field_file = "field.h5"
     field_modes = "field_modes.png"
     grid_file_gold_rec = "golden_record/biotsavart.inp"
     current_file_gold_rec = "golden_record/cur_asd.dd"
