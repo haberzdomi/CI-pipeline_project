@@ -16,7 +16,7 @@ def get_runtimes(grid, coils, currents):
         stmt=lambda: get_field_on_grid(grid, coils, currents, calc_biotsavart),
         setup="from biotsavart import calc_biotsavart, "
         + get_field_on_grid.__name__
-        + ", coils; from grid import GRID",
+        + ", COILS; from grid import GRID",
         number=1,
     )
     print(f"Sequential loop time: {time_seq_loop} s")
@@ -27,7 +27,7 @@ def get_runtimes(grid, coils, currents):
         ),
         setup="from biotsavart import calc_biotsavart_vectorized, "
         + get_field_on_grid.__name__
-        + ", coils; from grid import GRID",
+        + ", COILS; from grid import GRID",
         number=1,
     )
     print(f"Sequential vectorized time: {time_seq_vec} s")
@@ -38,7 +38,7 @@ def get_runtimes(grid, coils, currents):
         ),
         setup="from biotsavart import calc_biotsavart, "
         + get_field_on_grid_numba_parallel.__name__
-        + ", coils; from grid import GRID",
+        + ", COILS; from grid import GRID",
         number=1,
     )
     print(f"Parallel loop time: {time_parallel_loop} s")
@@ -49,7 +49,7 @@ def get_runtimes(grid, coils, currents):
         ),
         setup="from biotsavart import calc_biotsavart_vectorized, "
         + get_field_on_grid_numba_parallel.__name__
-        + ", coils; from grid import GRID",
+        + ", COILS; from grid import GRID",
         number=1,
     )
     print(f"Parallel vectorized time: {time_parallel_vec} s")
@@ -57,14 +57,14 @@ def get_runtimes(grid, coils, currents):
     return time_seq_loop, time_seq_vec, time_parallel_loop, time_parallel_vec
 
 
-test_grid = GRID(12, 32, 24, 75, 267, 0, 2 * np.pi, -154, 154)
+test_grid = GRID(24, 64, 48, 75.0, 267.0, 0, 2 * np.pi, -154.0, 150.4)
 coils = read_coils("co_asd.dd")
 currents = read_currents("cur_asd.dd")
 
 times = get_runtimes(test_grid, coils, currents)
 
-# For the above test_grid (large grid), the following times were measured:
-# Sequential loop time:       79.1 s
-# Sequential vectorized time: 11.6 s
-# Parallel loop time:         19.6 s
-# Parallel vectorized time:   10.1 s <-- fastest
+# For number=5 and GRID(24, 64, 48, 75.0, 267.0, 0, 2 * np.pi, -154.0, 150.4) the following times were measured:
+# Sequential loop time: 2387.7 s -- devide by 5 --> 477.5 s per iteration
+# Sequential vectorized time: 88.2 s -- devide by 5 --> 17.7 s per iteration
+# Parallel loop time: 696.9 s -- devide by 5 --> 139.4 s per iteration
+# Parallel vectorized time: 41.2 s -- devide by 5 --> 8.2 s per iteration <-- fastest
