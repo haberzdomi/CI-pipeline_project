@@ -17,8 +17,8 @@ from timeit import default_timer
         ("Y", nb.float64[:]),
         ("Z", nb.float64[:]),
         ("has_current", nb.float64[:]),
-        ("coil_number", nb.int32[:]),
-        ("n_nodes", nb.int32),
+        ("coil_number", nb.int64[:]),
+        ("n_nodes", nb.int64),
     ]
 )
 class COILS:
@@ -186,12 +186,12 @@ def read_coils(coil_file):
         coils object with the parameters read from the coil_file.
     """
     data = np.loadtxt(coil_file, skiprows=1)
-    n_nodes = len(data)
+    n_nodes = np.int64(len(data))
     X = data[:, 0]
     Y = data[:, 1]
     Z = data[:, 2]
     has_current = data[:, 3]
-    coil_number = data[:, 4].astype(int)
+    coil_number = data[:, 4].astype(np.int64)
 
     last_nodes_idxs = np.where(np.diff(coil_number) != 0)[0]
 
