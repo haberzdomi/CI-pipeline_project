@@ -17,7 +17,7 @@ def get_runtimes(grid, coils, currents):
         setup="from biotsavart import calc_biotsavart, "
         + get_field_on_grid.__name__
         + ", COILS; from grid import GRID",
-        number=1,
+        number=5,
     )
     print(f"Sequential loop time: {time_seq_loop} s")
 
@@ -28,7 +28,7 @@ def get_runtimes(grid, coils, currents):
         setup="from biotsavart import calc_biotsavart_vectorized, "
         + get_field_on_grid.__name__
         + ", COILS; from grid import GRID",
-        number=1,
+        number=5,
     )
     print(f"Sequential vectorized time: {time_seq_vec} s")
 
@@ -39,7 +39,7 @@ def get_runtimes(grid, coils, currents):
         setup="from biotsavart import calc_biotsavart, "
         + get_field_on_grid_numba_parallel.__name__
         + ", COILS; from grid import GRID",
-        number=1,
+        number=5,
     )
     print(f"Parallel loop time: {time_parallel_loop} s")
 
@@ -50,7 +50,7 @@ def get_runtimes(grid, coils, currents):
         setup="from biotsavart import calc_biotsavart_vectorized, "
         + get_field_on_grid_numba_parallel.__name__
         + ", COILS; from grid import GRID",
-        number=1,
+        number=5,
     )
     print(f"Parallel vectorized time: {time_parallel_vec} s")
 
