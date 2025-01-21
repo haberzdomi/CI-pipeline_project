@@ -54,7 +54,7 @@ def test_biotsavart(
     plt.legend()
     plt.xlabel("Z")
     plt.ylabel("BZ")
-    plt.show()
+    #plt.show()
 
     # Tolerance was chosen by comparing the formula for a circular loop and the formula for a polygon-shaped loop.
     # The maximum value of the analytical solution was multiplied with the factor nseg*tan(pi/nseg)/pi

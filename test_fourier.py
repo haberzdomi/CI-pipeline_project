@@ -72,7 +72,7 @@ def test_fourier(n_max, field_file):
     fig.tight_layout()
     plt.subplots_adjust(top=0.9)
 
-    plt.show()
+    #plt.show()
 
     # Only small floating point deviations of the two calculation methods are allowed.
     rel_errors_real = np.abs(BnR.real - BnR_fft.real) / np.abs(BnR_fft.real)
