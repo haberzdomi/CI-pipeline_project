@@ -3,7 +3,7 @@ run-name: Running appropriate tests after committing changes
 on: push
 jobs:
   test_and_run:
-    runs-on: windows-2022
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: pip install -r requirements.txt
