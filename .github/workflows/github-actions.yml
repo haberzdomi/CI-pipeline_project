@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@master
       - run: echo ${{runner.os}}
       - name: requirements
-        uses: ryan-rozario/pipreqs-action@master
+        uses: ryan-rozario/pipreqs-action@v3.0.0
         with:
           REQUIREMENT_PATH: requirements_ubuntu.txt
         if: runner.os == 'Linux'
