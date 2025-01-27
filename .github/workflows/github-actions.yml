@@ -16,7 +16,7 @@ jobs:
         if: runner.os == 'Windows'
       - run: pip install -r requirements_ubuntu.txt
         if: runner.os == 'Linux'
-      - run: pip install pytest
+      - run: pip install -e
         if: runner.os == 'Linux'
       - run: python -m pytest test_biotsavart.py
       - run: python biotsavart.py
