@@ -9,6 +9,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - run: echo ${{runner.os}}
       - run: pip freeze > requirements_ubuntu.txt
         if: ${{! runner.os == 'Linux'}}
       - run: pip install -r requirements.txt
