@@ -3,10 +3,17 @@ run-name: Running appropriate tests after committing changes
 on: push
 jobs:
   test_and_run:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [windows-2022, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@master
+      - run: echo ${{runner.os}}
       - run: pip install -r requirements.txt
+        if: runner.os == 'Windows'
+      - run: pip install -r requirements_ubuntu.txt
+        if: runner.os == 'Linux'
       - run: python -m pytest test_biotsavart.py
       - run: python biotsavart.py
       - run: python -m pytest test_fourier.py
