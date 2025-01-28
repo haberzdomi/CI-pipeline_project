@@ -15,6 +15,11 @@ jobs:
         with:
           REQUIREMENT_PATH: requirements_ubuntu.txt
         if: runner.os == 'Linux'
+      - name: save
+        uses: actions/upload-artifact@v4
+        with:
+          name: requirements_ubuntu.txt
+        if: runner.os == 'Linux'
       - run: pip install -r requirements.txt
         if: runner.os == 'Windows'
       - run: pip install -r requirements_ubuntu.txt
