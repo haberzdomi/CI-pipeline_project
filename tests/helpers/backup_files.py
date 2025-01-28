@@ -1,4 +1,5 @@
 import os
+from importlib.resources import files
 
 
 def backup_files(files):
@@ -8,16 +9,20 @@ def backup_files(files):
         files (iterable): Paths to files to backup in order to protect them from being overwritten
 
     Returns:
-        new_files (iterable): New paths of the files which have been moved to temporary
+        moved_files (iterable): New paths of the files which have been moved to temporary
     """
-    if not os.path.exists("temporary"):
-        os.mkdir("temporary")
-    new_files = files.copy()
+
+    moved_files = files.copy()
     for i, file in enumerate(files):
         if os.path.exists(file):
-            os.rename(file, f"temporary/{file}")
-            new_files[i] = f"temporary/{file}"
-    return new_files
+            temp_folder = file.parent.joinpath("temporary")
+            if not os.path.exists(temp_folder):
+                os.mkdir(temp_folder)
+            moved_file = temp_folder.joinpath(file.name)
+            os.rename(file, moved_file)
+            moved_files[i] = moved_file
+        
+    return moved_files
 
 
 def cleanup_files(files):
@@ -29,6 +34,8 @@ def cleanup_files(files):
     for file in files:
         if os.path.exists(file):
             os.remove(file)
+            if not os.listdir(file.parent):
+                os.rmdir(file.parent)
 
 
 def restore_backups(files):
@@ -39,5 +46,6 @@ def restore_backups(files):
     """
     for file in files:
         if os.path.exists(file):
-            os.rename(file, file.split("temporary/")[1])
-    os.rmdir("temporary")
+            os.rename(file, str(file).replace("temporary\\", ""))
+            if not os.listdir(file.parent):
+                os.rmdir(file.parent)

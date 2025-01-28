@@ -1,8 +1,9 @@
 from matplotlib import pyplot as plt
 from matplotlib import rcParams
 import numpy as np
+from importlib.resources import files
 import pytest
-from reference_solutions import fourier_analysis
+from tests.helpers.reference_solutions import fourier_analysis
 
 
 @pytest.mark.parametrize(
@@ -10,7 +11,7 @@ from reference_solutions import fourier_analysis
     [
         [
             8,
-            "field.h5",
+            files("biotsavart_modes").joinpath("output/field.h5"),
         ],
     ],
 )

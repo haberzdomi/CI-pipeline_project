@@ -1,7 +1,8 @@
 import timeit
-from grid import GRID
+from biotsavart_modes.helpers.grid import GRID
+from importlib.resources import files
 import numpy as np
-from biotsavart import (
+from biotsavart_modes.biotsavart.biotsavart import (
     read_coils,
     read_currents,
     get_field_on_grid,
@@ -14,9 +15,9 @@ from biotsavart import (
 def get_runtimes(grid, coils, currents):
     time_seq_loop = timeit.timeit(
         stmt=lambda: get_field_on_grid(grid, coils, currents, calc_biotsavart),
-        setup="from biotsavart import calc_biotsavart, "
+        setup="from biotsavart_modes.biotsavart.biotsavart import calc_biotsavart, "
         + get_field_on_grid.__name__
-        + ", COILS; from grid import GRID",
+        + ", COILS; from biotsavart_modes.helpers.grid import GRID",
         number=5,
     )
     print(f"Sequential loop time: {time_seq_loop} s")
@@ -25,9 +26,9 @@ def get_runtimes(grid, coils, currents):
         stmt=lambda: get_field_on_grid(
             grid, coils, currents, calc_biotsavart_vectorized
         ),
-        setup="from biotsavart import calc_biotsavart_vectorized, "
+        setup="from biotsavart_modes.biotsavart.biotsavart import calc_biotsavart_vectorized, "
         + get_field_on_grid.__name__
-        + ", COILS; from grid import GRID",
+        + ", COILS; from biotsavart_modes.helpers.grid import GRID",
         number=5,
     )
     print(f"Sequential vectorized time: {time_seq_vec} s")
@@ -36,9 +37,9 @@ def get_runtimes(grid, coils, currents):
         stmt=lambda: get_field_on_grid_numba_parallel(
             grid, coils, currents, calc_biotsavart
         ),
-        setup="from biotsavart import calc_biotsavart, "
+        setup="from biotsavart_modes.biotsavart.biotsavart import calc_biotsavart, "
         + get_field_on_grid_numba_parallel.__name__
-        + ", COILS; from grid import GRID",
+        + ", COILS; from biotsavart_modes.helpers.grid import GRID",
         number=5,
     )
     print(f"Parallel loop time: {time_parallel_loop} s")
@@ -47,9 +48,9 @@ def get_runtimes(grid, coils, currents):
         stmt=lambda: get_field_on_grid_numba_parallel(
             grid, coils, currents, calc_biotsavart_vectorized
         ),
-        setup="from biotsavart import calc_biotsavart_vectorized, "
+        setup="from biotsavart_modes.biotsavart.biotsavart import calc_biotsavart_vectorized, "
         + get_field_on_grid_numba_parallel.__name__
-        + ", COILS; from grid import GRID",
+        + ", COILS; from biotsavart_modes.helpers.grid import GRID",
         number=5,
     )
     print(f"Parallel vectorized time: {time_parallel_vec} s")
@@ -58,8 +59,8 @@ def get_runtimes(grid, coils, currents):
 
 
 test_grid = GRID(24, 64, 48, 75.0, 267.0, 0, 2 * np.pi, -154.0, 150.4)
-coils = read_coils("co_asd.dd")
-currents = read_currents("cur_asd.dd")
+coils = read_coils(files("biotsavart_modes").joinpath("input/co_asd.dd"))
+currents = read_currents(files("biotsavart_modes").joinpath("input/cur_asd.dd"))
 
 times = get_runtimes(test_grid, coils, currents)
 

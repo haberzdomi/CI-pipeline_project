@@ -1,13 +1,15 @@
 import argparse
+from biotsavart_modes.biotsavart.biotsavart import read_coils
+from importlib.resources import files
 import matplotlib.pyplot as plt
-from biotsavart import read_coils
+from pathlib import WindowsPath
 
 
 def plot_coils(coil_file, figsize=(6, 5)):
     """Make a 3D plot of the coils. The geometry of the coils is read from coil_file.
 
     Args:
-        coil_file (str): File name of the coil geometry
+        coil_file (WindowsPath): File containing the coil geometry
         figsize (tuple, optional): Size of the figure in inches. Defaults to (6, 5).
     """
     coil_parameters = read_coils(coil_file)
@@ -23,15 +25,15 @@ def plot_coils(coil_file, figsize=(6, 5)):
     for k in range(n_coils):
         # Plot line of the k-th coil
         ax.plot(X[k,], Y[k, :], Z[k, :], "-k")
-    plt.show()
+    plt.savefig(files("biotsavart_modes").joinpath("output/coils_geometry.png"))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--coil_file",
-        type=str,
-        default="co_asd.dd",
+        type=WindowsPath,
+        default=files("biotsavart_modes").joinpath("input/co_asd.dd"),
         help="Input file containing the coil geometry.",
     )
     parser.add_argument(

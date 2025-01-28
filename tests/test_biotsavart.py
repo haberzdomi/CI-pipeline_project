@@ -1,9 +1,10 @@
-from biotsavart import (
+from biotsavart_modes.biotsavart.biotsavart import (
     calc_biotsavart,
     calc_biotsavart_vectorized,
     get_field_on_grid,
     get_field_on_grid_numba_parallel,
 )
+from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -20,7 +21,7 @@ import pytest
             4,
             3,
             64,
-            "field.h5",
+            Path("tests/temp_output/field.h5"),
             calc_biotsavart_vectorized,
             get_field_on_grid_numba_parallel,
         ],
@@ -38,13 +39,13 @@ def test_biotsavart(
         R_0 (float): Radius of the loop
         I_c (float): current flowing through the loop
         nseg (int): the number of segments in the discretisation of the loop
-        field_file (str): File name of magnetic field test calculation output. File will be deleted after the test.
-                          Extension determines which writer function is used.
+        field_file (WindowsPath): File of magnetic field test calculation output. File will be deleted after the test.
+                                  Extension determines which writer function is used.
         integrator (function): Function to evaluate the Biot-Savart integral and calculate the magnetic field components.
         grid_iterator (function, optional): Function which iterates over the grid points onto which the magnetic field is calculated.
         tol (float): acceptable difference between the analytical result and the output of biotsavart.py
     """
-    from reference_solutions import circular_current
+    from tests.helpers.reference_solutions import circular_current
 
     Z, BZ, BZ_analytic = circular_current(
         R_max, nR, nphi, nZ, R_0, I_c, nseg, field_file, integrator, grid_iterator

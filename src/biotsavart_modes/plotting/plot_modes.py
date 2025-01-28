@@ -1,11 +1,13 @@
 import argparse
-from bdivfree import get_A_field_modes, calc_B_field_modes
-from grid import GRID
+from biotsavart_modes.helpers.bdivfree import get_A_field_modes, calc_B_field_modes
+from biotsavart_modes.helpers.grid import GRID
 import h5py
+from importlib.resources import files
 from matplotlib.colors import Normalize
 import matplotlib.pyplot as plt
 from netCDF4 import Dataset
 import numpy as np
+from pathlib import WindowsPath
 from os.path import exists
 
 
@@ -13,7 +15,7 @@ def read_field(field_file):
     """From field_file get the discretized 3D-grid and the magnetic field components for each point on this grid.
 
     Args:
-        field_file (str): File name of the magnetic field calculation output. If the file does not exist, the file "field_original.dat" is taken.
+        field_file (WindowsPath): File of the magnetic field calculation output. If the file does not exist, the file "field_original.dat" is taken.
 
     Returns:
         grid (GRID object): Object containing the cylindrical 3D-grid and its parameters.
@@ -22,7 +24,7 @@ def read_field(field_file):
         BZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
     """
     if not exists(field_file):
-        field_file = "golden_record/field.dat"
+        field_file = files("golden_record/field.dat")
 
     with open(field_file, "r") as f:
         nR, nphi, nZ, _ = [int(data) for data in f.readline().split()]
@@ -45,9 +47,9 @@ def read_field_hdf5(field_file):
     """From the HDF5-file field_file get the discretized 3D-grid and the magnetic field components for each point on this grid.
 
     Args:
-        field_file (str): File name of the magnetic field calculation output.
-                          If the file does not exist, the file "field_original.dat" is read instead by calling read_field.
-                          Must have a HDF5 file extension.
+        field_file (WindowsPath): File of the magnetic field calculation output.
+                                  If the file does not exist, the file "field_original.dat" is read instead by calling read_field.
+                                  Must have a HDF5 file extension.
 
     Returns:
         grid (GRID object): Object containing the cylindrical 3D-grid and its parameters.
@@ -56,9 +58,10 @@ def read_field_hdf5(field_file):
         BZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
     """
     if not exists(field_file):
-        field_file = "golden_record/field.dat"
+        field_file = files("golden_record/field.dat")
         return read_field(field_file)
-    if not (field_file.endswith(".h5") or field_file.endswith(".hdf5")):
+    field_fname = field_file.name
+    if not (field_fname.endswith(".h5") or field_fname.endswith(".hdf5")):
         raise ValueError(
             "Output file must be a HDF5 file. Instead call read_field_netcdf for netCDF4 files or read_field for .dat files."
         )
@@ -81,9 +84,9 @@ def read_field_netcdf(field_file):
     """From the netCDF4-file field_file get the discretized 3D-grid and the magnetic field components for each point on this grid.
 
     Args:
-        field_file (str): File name of the magnetic field calculation output.
-                          If the file does not exist, the file "field_original.dat" is read instead by calling read_field.
-                          Must have a netCDF4 file extension.
+        field_file (WindowsPath): File of the magnetic field calculation output.
+                                  If the file does not exist, the file "field_original.dat" is read instead by calling read_field.
+                                  Must have a netCDF4 file extension.
 
     Returns:
         grid (GRID object): Object containing the cylindrical 3D-grid and its parameters.
@@ -92,9 +95,10 @@ def read_field_netcdf(field_file):
         BZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
     """
     if not exists(field_file):
-        field_file = "golden_record/field.dat"
+        field_file = files("golden_record/field.dat")
         return read_field(field_file)
-    if not (field_file.endswith(".nc") or field_file.endswith(".cdf")):
+    field_fname = field_file.name
+    if not (field_fname.endswith(".nc") or field_fname.endswith(".cdf")):
         raise ValueError(
             "Output file must be a netCDF4 file. Instead call read_field_hdf5 for HDF5 files or read_field for .dat files."
         )
@@ -135,13 +139,14 @@ def plot_modes(field_file, n_modes, figsize=(8, 4)):
     next row starts.
 
     Args:
-        field_file (str): File name of the magnetic field calculation output.
+        field_file (WindowsPath): File of the magnetic field calculation output.
         n_modes (int): Number of modes which should be plotted.
         figsize (tuple, optional): Size of the figure in inches. Defaults to (8, 4).
     """
-    if field_file.endswith(".h5") or field_file.endswith(".hdf5"):
+    field_fname = field_file.name
+    if field_fname.endswith(".h5") or field_fname.endswith(".hdf5"):
         grid, BR, Bphi, BZ = read_field_hdf5(field_file)
-    elif field_file.endswith(".nc") or field_file.endswith(".cdf"):
+    elif field_fname.endswith(".nc") or field_fname.endswith(".cdf"):
         grid, BR, Bphi, BZ = read_field_netcdf(field_file)
     else:
         grid, BR, Bphi, BZ = read_field(field_file)
@@ -200,16 +205,17 @@ def plot_modes(field_file, n_modes, figsize=(8, 4)):
     # Add colorbar and labels
     cbar = fig.colorbar(im, ax=axs, location="right")
     cbar.set_label(r"$\log_{10} |\vec{B}_{n}|^{2}$")
-    plt.savefig("field_modes.png")
+    # Save fig at the same location where the field file is located
+    plt.savefig(field_file.parent.joinpath("field_modes.png"))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--field_file",
-        type=str,
-        default="field.h5",
-        help="File name of the magnetic field calculation output containing the magnetic field components and calculation parameters.",
+        type=WindowsPath,
+        default=files("biotsavart_modes").joinpath("output/field.h5"),
+        help="File of the magnetic field calculation output containing the magnetic field components and calculation parameters.",
     )
     parser.add_argument(
         "--n_modes", type=int, default=8, help="Number of modes which should be plotted"

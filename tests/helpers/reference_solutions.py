@@ -1,22 +1,27 @@
-from backup_files import backup_files, cleanup_files, restore_backups
-from bdivfree import get_A_field_modes, calc_B_field_modes
-from biotsavart import make_field_file_from_coils
+from biotsavart_modes.biotsavart.biotsavart import make_field_file_from_coils
+from biotsavart_modes.helpers.bdivfree import get_A_field_modes, calc_B_field_modes
+from biotsavart_modes.plotting.plot_modes import (
+    read_field,
+    read_field_hdf5,
+    read_field_netcdf,
+)
 import numpy as np
-from plot_modes import read_field, read_field_hdf5, read_field_netcdf
+import os
+from pathlib import Path
+from tests.helpers.backup_files import backup_files, cleanup_files, restore_backups
 
 
 def get_filenames():
     """Return the paths of the file for the new calculation and the golden record input and output files.
 
     Returns:
-        grid_file (str): File defining the grid for the Biot-Savart calculation in the test
-        current_file (str): File defining the coil currents for the Biot-Savart calculation in the test
-        coil_file (str): File defining the magnetic coils for the Biot-Savart calculation in the test
-        field_file (str): File containing the magnetic field values of the Biot-Savart calculation in the test
+        grid_file (WindowsPath): File defining the grid for the Biot-Savart calculation in the test
+        current_file (WindowsPath): File defining the coil currents for the Biot-Savart calculation in the test
+        coil_file (WindowsPath): File defining the magnetic coils for the Biot-Savart calculation in the test
     """
-    grid_file = "test_grid_file"
-    current_file = "test_current_file"
-    coil_file = "test_coil_file"
+    grid_file = Path("tests/temp_input/test_grid_file")
+    current_file = Path("tests/temp_input/test_current_file")
+    coil_file = Path("tests/temp_input/test_coil_file")
     return (grid_file, current_file, coil_file)
 
 
@@ -45,7 +50,7 @@ def circular_current(
         R_0 (float): Radius of the loop
         I_c (float): current flowing through the loop
         nseg (int): the number of segments in the discretisation of the loop
-        field_file (str): File name of the magnetic field test calculation output.
+        field_file (WindowsPath): File name of the magnetic field test calculation output.
         integrator (function, optional): Function to evaluate the Biot-Savart integral and calculate the magnetic field components.
         grid_iterator (function, optional): Function which iterates over the grid points onto which the magnetic field is calculated.
     Returns:
@@ -58,11 +63,15 @@ def circular_current(
     protected_files = backup_files(files)
 
     # Create input files for test
+    if not os.path.exists(grid_file.parent):
+        os.mkdir(grid_file.parent)
     with open(grid_file, "w") as file:
         file.write(f"{nR} {nphi} {nZ} \n")
         file.write(f"{0} {R_max} \n")
         file.write(f"{-R_max} {R_max} \n")
 
+    if not os.path.exists(coil_file.parent):
+        os.mkdir(coil_file.parent)
     with open(coil_file, "w") as file:
         file.write(f"{nseg + 1} \n")
 
@@ -80,10 +89,14 @@ def circular_current(
             np.column_stack((X, Y, Z, has_current, coil_number)),
         )
 
+    if not os.path.exists(current_file.parent):
+        os.mkdir(current_file.parent)
     with open(current_file, "w") as file:
         file.write(f"{I_c} \n")
 
     # Run the calculation
+    if not os.path.exists(field_file.parent):
+        os.mkdir(field_file.parent)
     make_field_file_from_coils(
         grid_file,
         coil_file,
@@ -95,9 +108,10 @@ def circular_current(
     )
 
     # Process output data
-    if field_file.endswith(".h5") or field_file.endswith(".hdf5"):
+    field_fname = field_file.name
+    if field_fname.endswith(".h5") or field_fname.endswith(".hdf5"):
         _, _, _, BZ = read_field_hdf5(field_file)
-    elif field_file.endswith(".nc") or field_file.endswith(".cdf"):
+    elif field_fname.endswith(".nc") or field_fname.endswith(".cdf"):
         _, _, _, BZ = read_field_netcdf(field_file)
     else:
         _, _, _, BZ = read_field(field_file)
@@ -120,7 +134,7 @@ def fourier_analysis(n_max, field_file):
 
     Args:
         n_max (int): Highest mode number up to which the of the magnetic field is calculated.
-        field_file (str): File name of the magnetic field calculation output.
+        field_file (WindowsPath): File of the magnetic field calculation output.
 
     Returns:
         R (array[float], shape=(nR,)): Radial grid for which the magentic field modes are calculated.
@@ -130,9 +144,10 @@ def fourier_analysis(n_max, field_file):
                                                           numpy.fft.fft (fast fourier transformation method).
     """
     # Get grid and magnetic field components from the calculation output field_file
-    if field_file.endswith(".h5") or field_file.endswith(".hdf5"):
+    field_fname = field_file.name
+    if field_fname.endswith(".h5") or field_fname.endswith(".hdf5"):
         grid, BR, Bphi, BZ = read_field_hdf5(field_file)
-    elif field_file.endswith(".nc") or field_file.endswith(".cdf"):
+    elif field_fname.endswith(".nc") or field_fname.endswith(".cdf"):
         grid, BR, Bphi, BZ = read_field_netcdf(field_file)
     else:
         grid, BR, Bphi, BZ = read_field(field_file)
