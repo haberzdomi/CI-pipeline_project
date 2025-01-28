@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "biotsavart_modes"
+version = "0.0.1"
+dependencies = [
+  "h5py",
+  "matplotlib",
+  "netCDF4",
+  "numba",
+  "numpy",
+  "pytest",
+  "scipy",
+]
+authors = [
+  { name="Haberz D."}, 
+  { name="Rinner C."}
+]
+description = "A package to calculate the magnetic field for a given coil geometry and current using Biot-Savart's law."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = {file = "LICENSE"}
