@@ -21,7 +21,7 @@ import pytest
             4,
             3,
             64,
-            Path("tests/temp_output/field.h5"),
+            "tests/temp_output/field.h5",
             calc_biotsavart_vectorized,
             get_field_on_grid_numba_parallel,
         ],
