@@ -28,13 +28,13 @@ def get_filenames():
         field_file_gold_rec (WindowsPath): Original output file of the Biot-Savart calculation containing the magnetic field values.
         field_modes_gold_rec (WindowsPath): Original output file of the Fourier transformation part: Plotted magnetic field modes.
     """
-    field_file = Path("tests/field.h5")
-    field_modes = Path("tests/field_modes.png")
-    grid_file_gold_rec = Path("tests/golden_record/biotsavart.inp")
-    current_file_gold_rec = Path("tests/golden_record/cur_asd.dd")
-    coil_file_gold_rec = Path("tests/golden_record/co_asd.dd")
-    field_file_gold_rec = Path("tests/golden_record/field.dat")
-    field_modes_gold_rec = Path("tests/golden_record/field_modes.png")
+    field_file = "tests/field.h5"
+    field_modes = "tests/field_modes.png"
+    grid_file_gold_rec = "tests/golden_record/biotsavart.inp"
+    current_file_gold_rec = "tests/golden_record/cur_asd.dd"
+    coil_file_gold_rec = "tests/golden_record/co_asd.dd"
+    field_file_gold_rec = "tests/golden_record/field.dat"
+    field_modes_gold_rec = "tests/golden_record/field_modes.png"
     return (
         field_file,
         field_modes,

@@ -19,9 +19,9 @@ def get_filenames():
         current_file (WindowsPath): File defining the coil currents for the Biot-Savart calculation in the test
         coil_file (WindowsPath): File defining the magnetic coils for the Biot-Savart calculation in the test
     """
-    grid_file = Path("tests/temp_input/test_grid_file")
-    current_file = Path("tests/temp_input/test_current_file")
-    coil_file = Path("tests/temp_input/test_coil_file")
+    grid_file = "tests/temp_input/test_grid_file"
+    current_file = "tests/temp_input/test_current_file"
+    coil_file = "tests/temp_input/test_coil_file"
     return (grid_file, current_file, coil_file)
 
 
