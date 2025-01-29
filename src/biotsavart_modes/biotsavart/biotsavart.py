@@ -417,10 +417,10 @@ def write_field_netcdf(field_file, grid, BR, Bphi, BZ, field_periodicity):
 
 
 def make_field_file_from_coils(
-    grid_file=files("biotsavart_modes").joinpath("input/biotsavart.inp"),
-    coil_file=files("biotsavart_modes").joinpath("input/co_asd.dd"),
-    current_file=files("biotsavart_modes").joinpath("input/cur_asd.dd"),
-    field_file=files("biotsavart_modes").joinpath("output/field.h5"),
+    grid_file,#=files("biotsavart_modes").joinpath("input/biotsavart.inp"),
+    coil_file,#=files("biotsavart_modes").joinpath("input/co_asd.dd"),
+    current_file,#=files("biotsavart_modes").joinpath("input/cur_asd.dd"),
+    field_file,#=files("biotsavart_modes").joinpath("output/field.h5"),
     integrator=calc_biotsavart,
     grid_iterator=get_field_on_grid_numba_parallel,
     field_periodicity=1,
