@@ -24,7 +24,7 @@ def read_field(field_file):
         BZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
     """
     if not exists(field_file):
-        field_file = files("golden_record/field.dat")
+        field_file = "tests/golden_record/field.dat"
 
     with open(field_file, "r") as f:
         nR, nphi, nZ, _ = [int(data) for data in f.readline().split()]
@@ -58,7 +58,7 @@ def read_field_hdf5(field_file):
         BZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
     """
     if not exists(field_file):
-        field_file = files("golden_record/field.dat")
+        field_file = "tests/golden_record/field.dat"
         return read_field(field_file)
     field_fname = field_file.name
     if not (field_fname.endswith(".h5") or field_fname.endswith(".hdf5")):
@@ -95,7 +95,7 @@ def read_field_netcdf(field_file):
         BZ (array[float], shape=(nR, nphi, nZ)): Z-component of the magnetic field for the calculated (nR, nphi, nZ)-grid points.
     """
     if not exists(field_file):
-        field_file = files("golden_record/field.dat")
+        field_file = "tests/golden_record/field.dat"
         return read_field(field_file)
     field_fname = field_file.name
     if not (field_fname.endswith(".nc") or field_fname.endswith(".cdf")):
@@ -214,7 +214,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--field_file",
         type=WindowsPath,
-        default=files("biotsavart_modes").joinpath("output/field.h5"),
+        default="src/biotsavart_modes/output/field.h5",
         help="File of the magnetic field calculation output containing the magnetic field components and calculation parameters.",
     )
     parser.add_argument(

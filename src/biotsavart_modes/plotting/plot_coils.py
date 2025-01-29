@@ -25,7 +25,7 @@ def plot_coils(coil_file, figsize=(6, 5)):
     for k in range(n_coils):
         # Plot line of the k-th coil
         ax.plot(X[k,], Y[k, :], Z[k, :], "-k")
-    plt.savefig(files("biotsavart_modes").joinpath("output/coils_geometry.png"))
+    plt.savefig("src/biotsavart_modes/output/coils_geometry.png")
 
 
 if __name__ == "__main__":
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--coil_file",
         type=WindowsPath,
-        default=files("biotsavart_modes").joinpath("input/co_asd.dd"),
+        default="src/biotsavart_modes/input/co_asd.dd",
         help="Input file containing the coil geometry.",
     )
     parser.add_argument(
