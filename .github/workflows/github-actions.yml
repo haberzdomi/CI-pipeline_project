@@ -15,7 +15,7 @@ jobs:
       - run: pip install -r requirements_ubuntu.txt
         if: runner.os == 'Linux'
       - run: pip install .
-      - run: python tests/test.py
+      - run: python src/biotsavart_modes/test.py
       - run: python -m pytest tests/test_fourier.py
       - run: python src/biotsavart_modes/biotsavart/biotsavart.py
       - run: python src/biotsavart_modes/plotting/plot_modes.py
