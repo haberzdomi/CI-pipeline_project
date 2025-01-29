@@ -34,8 +34,8 @@ def cleanup_files(files):
     for file in files:
         if os.path.exists(file):
             os.remove(file)
-            if not os.listdir(file.parent):
-                os.rmdir(file.parent)
+            if not os.listdir("temporary"):
+                os.rmdir("temporary")
 
 
 def restore_backups(files):
@@ -47,5 +47,5 @@ def restore_backups(files):
     for file in files:
         if os.path.exists(file):
             os.rename(file, str(file).replace("temporary\\", ""))
-            if not os.listdir(file.parent):
-                os.rmdir(file.parent)
+            if not os.listdir("temporary"):
+                os.rmdir("temporary")

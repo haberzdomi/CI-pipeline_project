@@ -63,15 +63,15 @@ def circular_current(
     protected_files = backup_files(files)
 
     # Create input files for test
-    if not os.path.exists(grid_file.parent):
-        os.mkdir(grid_file.parent)
+    if not os.path.exists("tests/temp_input/"):
+        os.mkdir("tests/temp_input/")
     with open(grid_file, "w") as file:
         file.write(f"{nR} {nphi} {nZ} \n")
         file.write(f"{0} {R_max} \n")
         file.write(f"{-R_max} {R_max} \n")
 
-    if not os.path.exists(coil_file.parent):
-        os.mkdir(coil_file.parent)
+    if not os.path.exists("tests/temp_input/"):
+        os.mkdir("tests/temp_input/")
     with open(coil_file, "w") as file:
         file.write(f"{nseg + 1} \n")
 
@@ -89,14 +89,14 @@ def circular_current(
             np.column_stack((X, Y, Z, has_current, coil_number)),
         )
 
-    if not os.path.exists(current_file.parent):
-        os.mkdir(current_file.parent)
+    if not os.path.exists("tests/temp_input/"):
+        os.mkdir("tests/temp_input/")
     with open(current_file, "w") as file:
         file.write(f"{I_c} \n")
 
     # Run the calculation
-    if not os.path.exists(field_file.parent):
-        os.mkdir(field_file.parent)
+    if not os.path.exists("tests/temp_output/"):
+        os.mkdir("tests/temp_output/")
     make_field_file_from_coils(
         grid_file,
         coil_file,
