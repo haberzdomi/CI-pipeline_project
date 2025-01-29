@@ -417,10 +417,10 @@ def write_field_netcdf(field_file, grid, BR, Bphi, BZ, field_periodicity):
 
 
 def make_field_file_from_coils(
-    grid_file=files("biotsavart_modes").joinpath("input/biotsavart.inp"),
-    coil_file=files("biotsavart_modes").joinpath("input/co_asd.dd"),
-    current_file=files("biotsavart_modes").joinpath("input/cur_asd.dd"),
-    field_file=files("biotsavart_modes").joinpath("output/field.h5"),
+    grid_file="src/biotsavart_modes/input/biotsavart.inp",
+    coil_file="src/biotsavart_modes/input/co_asd.dd",
+    current_file="src/biotsavart_modes/input/cur_asd.dd",
+    field_file="src/biotsavart_modes/output/field.h5",
     integrator=calc_biotsavart,
     grid_iterator=get_field_on_grid_numba_parallel,
     field_periodicity=1,
@@ -487,25 +487,25 @@ if __name__ == "__main__":
     parser.add_argument(
         "--grid_file",
         type=WindowsPath,
-        default=files("biotsavart_modes").joinpath("input/biotsavart.inp"),
+        default="src/biotsavart_modes/input/biotsavart.inp",
         help="Input file containing the parameters for a discretized grid.",
     )
     parser.add_argument(
         "--coil_file",
         type=WindowsPath,
-        default=files("biotsavart_modes").joinpath("input/co_asd.dd"),
+        default="src/biotsavart_modes/input/co_asd.dd",
         help="Input file containing the coil geometry.",
     )
     parser.add_argument(
         "--current_file",
         type=WindowsPath,
-        default=files("biotsavart_modes").joinpath("input/cur_asd.dd"),
+        default="src/biotsavart_modes/input/cur_asd.dd",
         help="Input file containing the currents of each coil.",
     )
     parser.add_argument(
         "--field_file",
         type=WindowsPath,
-        default=files("biotsavart_modes").joinpath("output/field.h5"),
+        default="src/biotsavart_modes/output/field.h5",
         help="Output file into which the magnetic field components and calculation parameters are written to.",
     )
     parser.add_argument(

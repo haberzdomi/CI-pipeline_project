@@ -59,8 +59,8 @@ def get_runtimes(grid, coils, currents):
 
 
 test_grid = GRID(24, 64, 48, 75.0, 267.0, 0, 2 * np.pi, -154.0, 150.4)
-coils = read_coils(files("biotsavart_modes").joinpath("input/co_asd.dd"))
-currents = read_currents(files("biotsavart_modes").joinpath("input/cur_asd.dd"))
+coils = read_coils("src/biotsavart_modes/input/co_asd.dd")
+currents = read_currents("src/biotsavart_modes/input/cur_asd.dd")
 
 times = get_runtimes(test_grid, coils, currents)
 
