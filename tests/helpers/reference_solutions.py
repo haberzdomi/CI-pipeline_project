@@ -108,7 +108,7 @@ def circular_current(
     )
 
     # Process output data
-    field_fname = field_file.name
+    field_fname = field_file
     if field_fname.endswith(".h5") or field_fname.endswith(".hdf5"):
         _, _, _, BZ = read_field_hdf5(field_file)
     elif field_fname.endswith(".nc") or field_fname.endswith(".cdf"):
@@ -144,7 +144,7 @@ def fourier_analysis(n_max, field_file):
                                                           numpy.fft.fft (fast fourier transformation method).
     """
     # Get grid and magnetic field components from the calculation output field_file
-    field_fname = field_file.name
+    field_fname = field_file
     if field_fname.endswith(".h5") or field_fname.endswith(".hdf5"):
         grid, BR, Bphi, BZ = read_field_hdf5(field_file)
     elif field_fname.endswith(".nc") or field_fname.endswith(".cdf"):

@@ -327,7 +327,7 @@ def write_field_hdf5(field_file, grid, BR, Bphi, BZ, field_periodicity):
         BZ (array[float], shape=(n_points, )): Axial component of the magnetic field. n_points is the total number of grid points.
         field_periodicity (int): Periodicity of the field in phi direction used for Tokamaks.
     """
-    field_fname = field_file.name
+    field_fname = field_file
     if not (field_fname.endswith(".h5") or field_fname.endswith(".hdf5")):
         raise ValueError(
             "Output file must be a HDF5 file when selecting the write_field_hdf5 writer."
@@ -369,7 +369,7 @@ def write_field_netcdf(field_file, grid, BR, Bphi, BZ, field_periodicity):
         BZ (array[float], shape=(n_points, )): Axial component of the magnetic field. n_points is the total number of grid points.
         field_periodicity (int): Periodicity of the field in phi direction used for Tokamaks.
     """
-    field_fname = field_file.name
+    field_fname = field_file
     if not (field_fname.endswith(".nc") or field_fname.endswith(".cdf")):
         raise ValueError(
             "Output file must be a netCDF4 file when selecting the write_field_netcdf writer."
@@ -473,7 +473,7 @@ def make_field_file_from_coils(
     BR, Bphi, BZ = grid_iterator(grid, coils, currents, integrator)
     print(f"Field calculation took: {default_timer() - start} s")
 
-    field_fname = field_file.name
+    field_fname = field_file
     if field_fname.endswith(".h5") or field_fname.endswith(".hdf5"):
         write_field_hdf5(field_file, grid, BR, Bphi, BZ, field_periodicity)
     elif field_fname.endswith(".nc") or field_fname.endswith(".cdf"):
@@ -486,25 +486,25 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--grid_file",
-        type=WindowsPath,
+        type=str,
         default="src/biotsavart_modes/input/biotsavart.inp",
         help="Input file containing the parameters for a discretized grid.",
     )
     parser.add_argument(
         "--coil_file",
-        type=WindowsPath,
+        type=str,
         default="src/biotsavart_modes/input/co_asd.dd",
         help="Input file containing the coil geometry.",
     )
     parser.add_argument(
         "--current_file",
-        type=WindowsPath,
+        type=str,
         default="src/biotsavart_modes/input/cur_asd.dd",
         help="Input file containing the currents of each coil.",
     )
     parser.add_argument(
         "--field_file",
-        type=WindowsPath,
+        type=str,
         default="src/biotsavart_modes/output/field.h5",
         help="Output file into which the magnetic field components and calculation parameters are written to.",
     )

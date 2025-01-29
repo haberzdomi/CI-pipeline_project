@@ -32,7 +32,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--coil_file",
-        type=WindowsPath,
+        type=str,
         default="src/biotsavart_modes/input/co_asd.dd",
         help="Input file containing the coil geometry.",
     )
