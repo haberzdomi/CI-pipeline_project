@@ -166,7 +166,7 @@ def test_field_against_golden_record(backup_and_cleanup):
     grid_gold_rec, BR_gold_rec, Bphi_gold_rec, BZ_gold_rec = read_field(
         field_file_gold_rec
     )
-    field_fname = field_file.name
+    field_fname = field_file
     if field_fname.endswith(".h5") or field_fname.endswith(".hdf5"):
         grid, BR, Bphi, BZ = read_field_hdf5(field_file)
     elif field_fname.endswith(".nc") or field_fname.endswith(".cdf"):

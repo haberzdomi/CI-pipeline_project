@@ -213,7 +213,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--field_file",
-        type=WindowsPath,
+        type=str,
         default="src/biotsavart_modes/output/field.h5",
         help="File of the magnetic field calculation output containing the magnetic field components and calculation parameters.",
     )
