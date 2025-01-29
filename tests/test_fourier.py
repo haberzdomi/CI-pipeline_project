@@ -1,7 +1,7 @@
 from matplotlib import pyplot as plt
 from matplotlib import rcParams
 import numpy as np
-from importlib.resources import files
+from pathlib import Path
 import pytest
 from tests.helpers.reference_solutions import fourier_analysis
 
@@ -11,7 +11,7 @@ from tests.helpers.reference_solutions import fourier_analysis
     [
         [
             8,
-            files("biotsavart_modes").joinpath("output/field.h5"),
+            Path("src/biotsavart_modes/output/field.h5"),
         ],
     ],
 )
@@ -30,11 +30,11 @@ def test_fourier(n_max, field_file):
         n_max (int): highest number of magnetic field mode up to which the test is done.
         field_file (str): File name of the magnetic field calculation output.
     """
-
+    print("start")
     # Calculate the magnetic field components for the first 'n_max' modes
     # for the radial grid R via handwritten fourier transform and via numpy.fft.ftt
     R, BnR, BnR_fft = fourier_analysis(n_max, field_file)
-
+    print("finished fourier analysis")
     # Create 4 subplots in a row before starting the next row.
     n_rows = n_max // 4  # Number of rows for subplots
     # Minumum and maximum limit for scientific notation of axes labels
