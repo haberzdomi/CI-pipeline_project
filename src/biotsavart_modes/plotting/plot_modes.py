@@ -60,7 +60,7 @@ def read_field_hdf5(field_file):
     if not exists(field_file):
         field_file = "tests/golden_record/field.dat"
         return read_field(field_file)
-    field_fname = field_file.name
+    field_fname = field_file
     if not (field_fname.endswith(".h5") or field_fname.endswith(".hdf5")):
         raise ValueError(
             "Output file must be a HDF5 file. Instead call read_field_netcdf for netCDF4 files or read_field for .dat files."
@@ -97,7 +97,7 @@ def read_field_netcdf(field_file):
     if not exists(field_file):
         field_file = "tests/golden_record/field.dat"
         return read_field(field_file)
-    field_fname = field_file.name
+    field_fname = field_file
     if not (field_fname.endswith(".nc") or field_fname.endswith(".cdf")):
         raise ValueError(
             "Output file must be a netCDF4 file. Instead call read_field_hdf5 for HDF5 files or read_field for .dat files."
@@ -143,7 +143,7 @@ def plot_modes(field_file, n_modes, figsize=(8, 4)):
         n_modes (int): Number of modes which should be plotted.
         figsize (tuple, optional): Size of the figure in inches. Defaults to (8, 4).
     """
-    field_fname = field_file.name
+    field_fname = field_file
     if field_fname.endswith(".h5") or field_fname.endswith(".hdf5"):
         grid, BR, Bphi, BZ = read_field_hdf5(field_file)
     elif field_fname.endswith(".nc") or field_fname.endswith(".cdf"):
@@ -206,7 +206,7 @@ def plot_modes(field_file, n_modes, figsize=(8, 4)):
     cbar = fig.colorbar(im, ax=axs, location="right")
     cbar.set_label(r"$\log_{10} |\vec{B}_{n}|^{2}$")
     # Save fig at the same location where the field file is located
-    plt.savefig(field_file.parent.joinpath("field_modes.png"))
+    plt.savefig("field_modes.png")
 
 
 if __name__ == "__main__":

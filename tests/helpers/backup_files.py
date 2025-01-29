@@ -15,10 +15,10 @@ def backup_files(files):
     moved_files = files.copy()
     for i, file in enumerate(files):
         if os.path.exists(file):
-            temp_folder = file.parent.joinpath("temporary")
+            temp_folder = "temporary"
             if not os.path.exists(temp_folder):
                 os.mkdir(temp_folder)
-            moved_file = temp_folder.joinpath(file.name)
+            moved_file = f"temporary/{file}"
             os.rename(file, moved_file)
             moved_files[i] = moved_file
         
