@@ -22,3 +22,6 @@ scipy = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
+
+[tool.poetry.package]
+include = ["src/**"]
