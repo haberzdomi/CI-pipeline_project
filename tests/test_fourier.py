@@ -11,7 +11,7 @@ from tests.helpers.reference_solutions import fourier_analysis
     [
         [
             8,
-            files("biotsavart_modes").joinpath("output/field.h5"),
+            files("src/biotsavart_modes").joinpath("output/field.h5"),
         ],
     ],
 )
