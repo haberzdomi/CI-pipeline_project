@@ -5,13 +5,13 @@ jobs:
   test_and_run:
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [windows-2022, ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@master
       - run: echo ${{runner.os}}
-      #- run: pip install -r requirements.txt
-      #  if: runner.os == 'Windows'
+      - run: pip install -r requirements.txt
+        if: runner.os == 'Windows'
       - run: pip install -r requirements_ubuntu.txt
         if: runner.os == 'Linux'
       - run: pip install .
