@@ -22,7 +22,7 @@ jobs:
       - name: Archive output of biotsavart and fourier calculation
         uses: actions/upload-artifact@v4
         with:
-          name: output-folder
+          name: output-folder_${{ runner.os }}
           path: src/biotsavart_modes/output/field_modes.png
 
 # execute with flag --artifact-server-path /tmp/artifacts
