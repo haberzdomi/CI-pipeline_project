@@ -25,4 +25,4 @@ jobs:
           name: output-folder_${{ runner.os }}
           path: src/biotsavart_modes/output/field_modes.png
 
-## execute with flag --artifact-server-path /tmp/artifacts
+# execute with flag --artifact-server-path /tmp/artifacts
