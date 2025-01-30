@@ -21,6 +21,14 @@ For testing wether everything has been installed well, we recommend to clone the
 * Now run the job called 'test' using `act -j test`. Because act is running for the first time this will take a while and you will be asked: `Please choose the default image you want to use …` Choose between Medium or Large and proceed. Micro is also a valid option but it will lead to the known issue [Unable to execute actions/setup-python](https://github.com/nektos/act/issues/251) when using the common action setup-python.
 * Enjoy the displayed   **`🏁 Job succeeded`**
 
+###### [Optional] Add self-hosted runner
+
+* Open a powershell with admin rights
+* Run `Set-ExecutionPolicy RemoteSigned` and confirm. (Please be aware of the security risks)
+* Open the file C:\Users\USER\AppData\Local\act\\actrc and add the following line:
+  `-P windows-latest=-self-hosted`
+* With `run-on: windows-latest` in your github-actions.yml a windows runner is available.
+
 ## Common flags
 
 * -n ,  --dryrun	Validates workflow correctness without container creation

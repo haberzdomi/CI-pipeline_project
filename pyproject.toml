@@ -6,7 +6,7 @@ build-backend = "poetry.core.masonry.api"
 name = "biotsavart_modes"
 packages = [{include = "biotsavart_modes", from="src"}]
 version = "0.0.1"
-description = "A package to calculate the magnetic field for a given coil geometry and current using Biot-Savart's law."
+description = "Calculate magnetic field for a given coil geometry and current using Biot-Savart's law."
 authors = ["Haberz D.", "Rinner C."]
 license = "MIT"
 readme = "README.md"
@@ -20,6 +20,3 @@ numba = "*"
 numpy = "*"
 pytest = "*"
 scipy = "*"
-
-[tool.poetry.dev-dependencies]
-pytest = "*"
