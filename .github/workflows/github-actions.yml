@@ -1,4 +1,4 @@
-name: Actions after commit
+name: perform_tests
 run-name: Running appropriate tests after committing changes
 on: push
 jobs:

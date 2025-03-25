@@ -1,4 +1,6 @@
-name: Actions after commit
+# IMPORTANT for act: execute with flag --artifact-server-path /tmp/artifacts
+
+name: upload_plot_after_tests
 run-name: Running appropriate tests after committing changes
 on: push
 jobs:
@@ -24,5 +26,3 @@ jobs:
         with:
           name: output-folder_${{ runner.os }}
           path: src/biotsavart_modes/output/field_modes.png
-
-# execute with flag --artifact-server-path /tmp/artifacts
