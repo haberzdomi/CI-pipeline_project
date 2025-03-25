@@ -61,16 +61,18 @@ def circular_current(
     files = [field_file, grid_file, current_file, coil_file]
     protected_files = backup_files(files)
 
-    # Create input files for test
+    # Create temp-folders if they do not already exist
     if not os.path.exists("tests/temp_input/"):
         os.mkdir("tests/temp_input/")
+    if not os.path.exists("tests/temp_output/"):
+        os.mkdir("tests/temp_output/")
+
+    # Create input files for test
     with open(grid_file, "w") as file:
         file.write(f"{nR} {nphi} {nZ} \n")
         file.write(f"{0} {R_max} \n")
         file.write(f"{-R_max} {R_max} \n")
 
-    if not os.path.exists("tests/temp_input/"):
-        os.mkdir("tests/temp_input/")
     with open(coil_file, "w") as file:
         file.write(f"{nseg + 1} \n")
 
@@ -88,14 +90,10 @@ def circular_current(
             np.column_stack((X, Y, Z, has_current, coil_number)),
         )
 
-    if not os.path.exists("tests/temp_input/"):
-        os.mkdir("tests/temp_input/")
     with open(current_file, "w") as file:
         file.write(f"{I_c} \n")
 
     # Run the calculation
-    if not os.path.exists("tests/temp_output/"):
-        os.mkdir("tests/temp_output/")
     make_field_file_from_coils(
         grid_file,
         coil_file,
@@ -122,6 +120,12 @@ def circular_current(
 
     cleanup_files(files)
     restore_backups(protected_files)
+
+    # Delete empty temp-folders if they exist
+    if os.path.exists("tests/temp_input/") and not os.listdir("tests/temp_input/"):
+        os.rmdir("tests/temp_input/")
+    if os.path.exists("tests/temp_output/") and not os.listdir("tests/temp_output/"):
+        os.rmdir("tests/temp_output/")
 
     return Z, BZ, BZ_analytic
 
