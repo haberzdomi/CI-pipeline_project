@@ -1,5 +1,4 @@
 import os
-from importlib.resources import files
 
 
 def backup_files(files):

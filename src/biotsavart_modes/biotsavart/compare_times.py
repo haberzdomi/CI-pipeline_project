@@ -1,6 +1,5 @@
 import timeit
 from biotsavart_modes.helpers.grid import GRID
-from importlib.resources import files
 import numpy as np
 from biotsavart_modes.biotsavart.biotsavart import (
     read_coils,

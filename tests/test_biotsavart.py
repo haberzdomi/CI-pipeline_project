@@ -4,7 +4,6 @@ from biotsavart_modes.biotsavart.biotsavart import (
     get_field_on_grid,
     get_field_on_grid_numba_parallel,
 )
-from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -39,7 +38,7 @@ def test_biotsavart(
         R_0 (float): Radius of the loop
         I_c (float): current flowing through the loop
         nseg (int): the number of segments in the discretisation of the loop
-        field_file (WindowsPath): File of magnetic field test calculation output. File will be deleted after the test.
+        field_file (str): File of magnetic field test calculation output. File will be deleted after the test.
                                   Extension determines which writer function is used.
         integrator (function): Function to evaluate the Biot-Savart integral and calculate the magnetic field components.
         grid_iterator (function, optional): Function which iterates over the grid points onto which the magnetic field is calculated.

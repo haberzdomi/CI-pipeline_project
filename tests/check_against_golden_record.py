@@ -11,7 +11,6 @@ from biotsavart_modes.plotting.plot_modes import (
 )
 from tests.helpers.backup_files import backup_files, cleanup_files, restore_backups
 import numpy as np
-from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 import pytest
 
@@ -20,13 +19,13 @@ def get_filenames():
     """Return the paths of the file for the new calculation and the golden record input and output files.
 
     Returns:
-        field_file (WindowsPath): Output field file for the test Biot-Savart calculation
-        field_modes (WindowsPath): Output file of the Fourier transformation part: Plotted magnetic field modes
-        grid_file_gold_rec (WindowsPath): Original input file defining the grid for the Biot-Savart calculation
-        current_file_gold_rec (WindowsPath): Original input file defining the coil currents for the Biot-Savart calculation
-        coil_file_gold_rec (WindowsPath): Original input file defining the magnetic coils for the Biot-Savart calculation
-        field_file_gold_rec (WindowsPath): Original output file of the Biot-Savart calculation containing the magnetic field values.
-        field_modes_gold_rec (WindowsPath): Original output file of the Fourier transformation part: Plotted magnetic field modes.
+        field_file (str): Output field file for the test Biot-Savart calculation
+        field_modes (str): Output file of the Fourier transformation part: Plotted magnetic field modes
+        grid_file_gold_rec (str): Original input file defining the grid for the Biot-Savart calculation
+        current_file_gold_rec (str): Original input file defining the coil currents for the Biot-Savart calculation
+        coil_file_gold_rec (str): Original input file defining the magnetic coils for the Biot-Savart calculation
+        field_file_gold_rec (str): Original output file of the Biot-Savart calculation containing the magnetic field values.
+        field_modes_gold_rec (str): Original output file of the Fourier transformation part: Plotted magnetic field modes.
     """
     field_file = "tests/field.h5"
     field_modes = "tests/field_modes.png"
@@ -53,13 +52,13 @@ def backup_and_cleanup():
     delete files and folders created during the test.
 
     Yields:
-        field_file (WindowsPath): Output file of the test Biot-Savart calculation containing the magnetic field values
-        field_modes (WindowsPath): Output file of the Fourier transformation part: Plotted magnetic field modes
-        grid_file_gold_rec (WindowsPath): Original input file defining the grid for the Biot-Savart calculation
-        current_file_gold_rec (WindowsPath): Original input file defining the coil currents for the Biot-Savart calculation
-        coil_file_gold_rec (WindowsPath): Original input file defining the magnetic coils for the Biot-Savart calculation
-        field_file_gold_rec (WindowsPath): Original output file of the Biot-Savart calculation containing the magnetic field values
-        field_modes_gold_rec (WindowsPath): Original output file of the Fourier transformation part: Plotted magnetic field modes
+        field_file (str): Output file of the test Biot-Savart calculation containing the magnetic field values
+        field_modes (str): Output file of the Fourier transformation part: Plotted magnetic field modes
+        grid_file_gold_rec (str): Original input file defining the grid for the Biot-Savart calculation
+        current_file_gold_rec (str): Original input file defining the coil currents for the Biot-Savart calculation
+        coil_file_gold_rec (str): Original input file defining the magnetic coils for the Biot-Savart calculation
+        field_file_gold_rec (str): Original output file of the Biot-Savart calculation containing the magnetic field values
+        field_modes_gold_rec (str): Original output file of the Fourier transformation part: Plotted magnetic field modes
     """
     (
         field_file,
@@ -83,7 +82,7 @@ def get_head_of_field_file(field_file):
     """Get the head (=first four lines) of the Biot-Savart field calculation output file.
 
     Args:
-        field_file (WindowsPath): File of the magnetic field calculation output
+        field_file (str): File of the magnetic field calculation output
 
     Returns:
         head (array[float], shape=(4,4)): Values of the first four lines in this file

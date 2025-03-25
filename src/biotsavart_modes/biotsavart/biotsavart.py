@@ -4,11 +4,9 @@
 import argparse
 from biotsavart_modes.helpers.grid import GRID
 import h5py
-from importlib.resources import files
 from netCDF4 import Dataset
 import numba as nb
 import numpy as np
-from pathlib import WindowsPath
 from timeit import default_timer
 
 
@@ -183,7 +181,7 @@ def read_coils(coil_file):
     """Read the input data stored in coil_file and return a coils object.
 
     Args:
-        coil_file (WindowsPath): Input file containing the coil geometry.
+        coil_file (str): Input file containing the coil geometry.
     Returns:
         coils object with the parameters read from the coil_file.
     """
@@ -208,7 +206,7 @@ def read_currents(current_file):
     """Return the input data stored in current_file.
 
     Args:
-        current_file (WindowsPath): Input file containing the currents of each coil.
+        current_file (str): Input file containing the currents of each coil.
     Returns:
         currents (array[float], shape=(n_coils, )): Currents of each coil. n_coils is the total number of coils.
 
@@ -222,7 +220,7 @@ def read_grid(grid_file, field_periodicity=1):
     """Read the input data stored in grid_file and return a GRID object.
 
     Args:
-        grid_file (WindowsPath): Input file containing the parameters for a discretized grid.
+        grid_file (str): Input file containing the parameters for a discretized grid.
         field_periodicity (int): Periodicity of the field in phi direction used for Tokamaks. Defaults to 1.
 
     Returns:
@@ -298,7 +296,7 @@ def write_field_to_file(field_file, grid, BR, Bphi, BZ, field_periodicity):
     """Write the calculation parameters (grid, field_periodicity) and the magnetic field components to the output file.
 
     Args:
-        field_file (WindowsPath): Output file into which the magnetic field components and calculation parameters are written to.
+        field_file (str): Output file into which the magnetic field components and calculation parameters are written to.
         grid (GRID object): Object containing the cylindrical 3D-grid and its parameters.
         BR (array[float], shape=(n_points, )): Radial component fo the magnetic field. n_points is the total number of grid points.
         Bphi (array[float], shape=(n_points, )): Toroidal component of the magnetic field. n_points is the total number of grid points.
@@ -320,7 +318,7 @@ def write_field_hdf5(field_file, grid, BR, Bphi, BZ, field_periodicity):
     """Write the calculation parameters (grid, field_periodicity) and the magnetic field components to an output file of the format "HDF5".
 
     Args:
-        field_file (WindowsPath): Output file into which the magnetic field components and calculation parameters are written to. Must have a HDF5 file extension.
+        field_file (str): Output file into which the magnetic field components and calculation parameters are written to. Must have a HDF5 file extension.
         grid (GRID object): Object containing the cylindrical 3D-grid and its parameters.
         BR (array[float], shape=(n_points, )): Radial component fo the magnetic field. n_points is the total number of grid points.
         Bphi (array[float], shape=(n_points, )): Toroidal component of the magnetic field. n_points is the total number of grid points.
@@ -362,7 +360,7 @@ def write_field_netcdf(field_file, grid, BR, Bphi, BZ, field_periodicity):
     """Write the calculation parameters (grid, field_periodicity) and the magnetic field components to an output file of the format "netCDF4".
 
     Args:
-        field_file (WindowsPath): Output file into which the magnetic field components and calculation parameters are written to. Must have a netCDF4 file extension.
+        field_file (str): Output file into which the magnetic field components and calculation parameters are written to. Must have a netCDF4 file extension.
         grid (GRID object): Object containing the cylindrical 3D-grid and its parameters.
         BR (array[float], shape=(n_points, )): Radial component fo the magnetic field. n_points is the total number of grid points.
         Bphi (array[float], shape=(n_points, )): Toroidal component of the magnetic field. n_points is the total number of grid points.
@@ -430,10 +428,10 @@ def make_field_file_from_coils(
     the results to the output file field_file. Print the time it took to calculate the field.
 
     Args:
-        grid_file (WindowsPath, optional): Input file containing the parameters for a discretized grid. Defaults to "biotsavart.inp".
-        coil_file (WindowsPath, optional): Input file containing the coil geometry. Defaults to "co_asd.dd".
-        current_file (WindowsPath, optional): Input file containing the currents of each coil. Defaults to "cur_asd.dd".
-        field_file (WindowsPath, optional): Output file into which the magnetic field components and calculation parameters are written to. Defaults to "field.h5".
+        grid_file (str, optional): Input file containing the parameters for a discretized grid. Defaults to "biotsavart.inp".
+        coil_file (str, optional): Input file containing the coil geometry. Defaults to "co_asd.dd".
+        current_file (str, optional): Input file containing the currents of each coil. Defaults to "cur_asd.dd".
+        field_file (str, optional): Output file into which the magnetic field components and calculation parameters are written to. Defaults to "field.h5".
         integrator (function, optional): Function to evaluate the Biot-Savart integral and calculate the magnetic field components. Defaults to calc_biotsavart.
         grid_iterator (function, optional): Function which iterates over the grid points onto which the magnetic field is calculated. Defaults to get_field_on_grid_numba_parallel.
         field_periodicity (int, optional): Periodicity of the field in phi direction used for Tokamaks. Defaults to 1.

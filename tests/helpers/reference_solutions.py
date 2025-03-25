@@ -7,7 +7,6 @@ from biotsavart_modes.plotting.plot_modes import (
 )
 import numpy as np
 import os
-from pathlib import Path
 from tests.helpers.backup_files import backup_files, cleanup_files, restore_backups
 
 
@@ -15,9 +14,9 @@ def get_filenames():
     """Return the paths of the file for the new calculation and the golden record input and output files.
 
     Returns:
-        grid_file (WindowsPath): File defining the grid for the Biot-Savart calculation in the test
-        current_file (WindowsPath): File defining the coil currents for the Biot-Savart calculation in the test
-        coil_file (WindowsPath): File defining the magnetic coils for the Biot-Savart calculation in the test
+        grid_file (str): File defining the grid for the Biot-Savart calculation in the test
+        current_file (str): File defining the coil currents for the Biot-Savart calculation in the test
+        coil_file (str): File defining the magnetic coils for the Biot-Savart calculation in the test
     """
     grid_file = "tests/temp_input/test_grid_file"
     current_file = "tests/temp_input/test_current_file"
@@ -50,7 +49,7 @@ def circular_current(
         R_0 (float): Radius of the loop
         I_c (float): current flowing through the loop
         nseg (int): the number of segments in the discretisation of the loop
-        field_file (WindowsPath): File name of the magnetic field test calculation output.
+        field_file (str): File name of the magnetic field test calculation output.
         integrator (function, optional): Function to evaluate the Biot-Savart integral and calculate the magnetic field components.
         grid_iterator (function, optional): Function which iterates over the grid points onto which the magnetic field is calculated.
     Returns:
@@ -134,7 +133,7 @@ def fourier_analysis(n_max, field_file):
 
     Args:
         n_max (int): Highest mode number up to which the of the magnetic field is calculated.
-        field_file (WindowsPath): File of the magnetic field calculation output.
+        field_file (str): File of the magnetic field calculation output.
 
     Returns:
         R (array[float], shape=(nR,)): Radial grid for which the magentic field modes are calculated.

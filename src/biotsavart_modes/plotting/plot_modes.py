@@ -2,12 +2,10 @@ import argparse
 from biotsavart_modes.helpers.bdivfree import get_A_field_modes, calc_B_field_modes
 from biotsavart_modes.helpers.grid import GRID
 import h5py
-from importlib.resources import files
 from matplotlib.colors import Normalize
 import matplotlib.pyplot as plt
 from netCDF4 import Dataset
 import numpy as np
-from pathlib import WindowsPath
 from os.path import exists
 
 
@@ -15,7 +13,7 @@ def read_field(field_file):
     """From field_file get the discretized 3D-grid and the magnetic field components for each point on this grid.
 
     Args:
-        field_file (WindowsPath): File of the magnetic field calculation output. If the file does not exist, the file "field_original.dat" is taken.
+        field_file (str): File of the magnetic field calculation output. If the file does not exist, the file "field_original.dat" is taken.
 
     Returns:
         grid (GRID object): Object containing the cylindrical 3D-grid and its parameters.
@@ -47,7 +45,7 @@ def read_field_hdf5(field_file):
     """From the HDF5-file field_file get the discretized 3D-grid and the magnetic field components for each point on this grid.
 
     Args:
-        field_file (WindowsPath): File of the magnetic field calculation output.
+        field_file (str): File of the magnetic field calculation output.
                                   If the file does not exist, the file "field_original.dat" is read instead by calling read_field.
                                   Must have a HDF5 file extension.
 
@@ -84,7 +82,7 @@ def read_field_netcdf(field_file):
     """From the netCDF4-file field_file get the discretized 3D-grid and the magnetic field components for each point on this grid.
 
     Args:
-        field_file (WindowsPath): File of the magnetic field calculation output.
+        field_file (str): File of the magnetic field calculation output.
                                   If the file does not exist, the file "field_original.dat" is read instead by calling read_field.
                                   Must have a netCDF4 file extension.
 
@@ -139,7 +137,7 @@ def plot_modes(field_file, n_modes, figsize=(8, 4)):
     next row starts.
 
     Args:
-        field_file (WindowsPath): File of the magnetic field calculation output.
+        field_file (str): File of the magnetic field calculation output.
         n_modes (int): Number of modes which should be plotted.
         figsize (tuple, optional): Size of the figure in inches. Defaults to (8, 4).
     """
