@@ -204,7 +204,8 @@ def plot_modes(field_file, n_modes, figsize=(8, 4)):
     cbar = fig.colorbar(im, ax=axs, location="right")
     cbar.set_label(r"$\log_{10} |\vec{B}_{n}|^{2}$")
     # Save fig at the same location where the field file is located
-    plt.savefig("field_modes.png")
+    field_folder = "/".join(field_file.split("/")[:-1])
+    plt.savefig(f"{field_folder}/field_modes.png")
 
 
 if __name__ == "__main__":
